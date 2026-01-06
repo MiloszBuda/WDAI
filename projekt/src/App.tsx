@@ -1,27 +1,63 @@
 import "./App.css";
-import { ProductCard } from "./components/products/ProductCard";
+import ProtectedRoute from "./components/common/ProtectedRoute";
+import { Route, Routes } from "react-router-dom";
+import CartPage from "./pages/CartPage";
+import HomePage from "./pages/HomePage";
+import LoginPage from "./pages/LoginPage";
+import ProductDetailsPage from "./pages/ProductDetailsPage";
+import NavBar from "./components/common/NavBar";
 
-function App() {
-  fetch("https://fakestoreapi.com/products")
-    .then((res) => res.json())
-    .then((json) => console.log(json));
+export default function App() {
   return (
-    <div>
-      <h1>Witamy w naszym sklepie!</h1>
-      <ProductCard
-        product={{
-          id: 1,
-          title: "Przykładowy produkt",
-          price: 29.99,
-          description: "To jest przykładowy opis produktu.",
-          category: "elektronika",
-          image: "https://via.placeholder.com/150",
-          stock: 10,
-          features: ["Cech 1", "Cech 2", "Cech 3"],
-        }}
-      />
-    </div>
+    <>
+      <NavBar />
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/products/:id" element={<ProductDetailsPage />} />
+
+        <Route element={<ProtectedRoute />}>
+          <Route path="/cart" element={<CartPage />} />
+        </Route>
+      </Routes>
+    </>
   );
 }
 
-export default App;
+/*
+<div>
+      <h1>Debug</h1>
+
+      {!isAuthenticated ? (
+        <button onClick={() => login({ username: "admin", password: "admin" })}>
+          Login
+        </button>
+      ) : (
+        <>
+          <p>Zalogowany jako: {user?.username}!</p>
+          <button onClick={logout}>Logout</button>
+        </>
+      )}
+
+      <hr />
+
+      <button
+        onClick={() =>
+          addItem({
+            productId: 1,
+            title: "Test product",
+            price: 100,
+            image: "",
+            quantity: 1,
+          })
+        }
+      >
+        Add to cart
+      </button>
+
+      <p>Ilość w koszyku: {items.length}</p>
+      <p>Suma: {totalPrice}</p>
+
+      <button onClick={clearCart}>Clear cart</button>
+    </div>
+*/
