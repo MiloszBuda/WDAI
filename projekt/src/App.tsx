@@ -5,12 +5,14 @@ import CartPage from "./pages/CartPage";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import ProductDetailsPage from "./pages/ProductDetailsPage";
-import NavBar from "./components/common/NavBar";
+import Navbar from "./components/common/Navbar";
+import OrdersPage from "./pages/OrderPage";
+import OrderDetailsPage from "./pages/OrderDetailsPage";
 
 export default function App() {
   return (
     <>
-      <NavBar />
+      <Navbar />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
@@ -18,6 +20,8 @@ export default function App() {
 
         <Route element={<ProtectedRoute />}>
           <Route path="/cart" element={<CartPage />} />
+          <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/orders/:id" element={<OrderDetailsPage />} />
         </Route>
       </Routes>
     </>

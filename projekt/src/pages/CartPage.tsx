@@ -1,15 +1,25 @@
 import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
+import { ordersService } from "../services/ordersService";
+import { useNavigate } from "react-router-dom";
 
 export default function CartPage() {
   const { items, totalPrice, removeItem, updateQuantity, clearCart } =
     useCart();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleCheckout = async () => {
+    if (!user) return;
+
+    await ordersService.createOrder(user.id, items, totalPrice);
+
+    clearCart();
+    navigate("/orders");
+  };
 
   if (items.length === 0) {
-    return (
-      <div>
-        <h2>Twój koszyk jest pusty</h2>
-      </div>
-    );
+    return <h2>Twój koszyk jest pusty</h2>;
   }
 
   return (
@@ -50,6 +60,7 @@ export default function CartPage() {
       <hr />
       <h2>Razem: {totalPrice} zł</h2>
       <button onClick={clearCart}>Wyczyść koszyk</button>
+      <button onClick={handleCheckout}>Przejdź do kasy</button>
     </div>
   );
 }
