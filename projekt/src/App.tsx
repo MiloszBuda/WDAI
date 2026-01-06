@@ -1,5 +1,6 @@
 import "./App.css";
 import ProtectedRoute from "./components/common/ProtectedRoute";
+import AdminRoute from "./components/common/AdminRoute";
 import { Route, Routes } from "react-router-dom";
 import CartPage from "./pages/CartPage";
 import HomePage from "./pages/HomePage";
@@ -8,6 +9,7 @@ import ProductDetailsPage from "./pages/ProductDetailsPage";
 import Navbar from "./components/common/Navbar";
 import OrdersPage from "./pages/OrderPage";
 import OrderDetailsPage from "./pages/OrderDetailsPage";
+import AdminPage from "./pages/AdminPage";
 
 export default function App() {
   return (
@@ -22,46 +24,11 @@ export default function App() {
           <Route path="/cart" element={<CartPage />} />
           <Route path="/orders" element={<OrdersPage />} />
           <Route path="/orders/:id" element={<OrderDetailsPage />} />
+          <Route element={<AdminRoute />}>
+            <Route path="/admin" element={<AdminPage />} />
+          </Route>
         </Route>
       </Routes>
     </>
   );
 }
-
-/*
-<div>
-      <h1>Debug</h1>
-
-      {!isAuthenticated ? (
-        <button onClick={() => login({ username: "admin", password: "admin" })}>
-          Login
-        </button>
-      ) : (
-        <>
-          <p>Zalogowany jako: {user?.username}!</p>
-          <button onClick={logout}>Logout</button>
-        </>
-      )}
-
-      <hr />
-
-      <button
-        onClick={() =>
-          addItem({
-            productId: 1,
-            title: "Test product",
-            price: 100,
-            image: "",
-            quantity: 1,
-          })
-        }
-      >
-        Add to cart
-      </button>
-
-      <p>Ilość w koszyku: {items.length}</p>
-      <p>Suma: {totalPrice}</p>
-
-      <button onClick={clearCart}>Clear cart</button>
-    </div>
-*/

@@ -61,6 +61,14 @@ function cartReducer(state: CartState, action: CartAction): CartState {
       };
 
     case "UPDATE_QUANTITY":
+      if (action.payload.quantity <= 0) {
+        return {
+          items: state.items.filter(
+            (item) => item.productId !== action.payload.productId
+          ),
+        };
+      }
+
       return {
         items: state.items.map((item) =>
           item.productId === action.payload.productId
@@ -115,7 +123,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const updateQuantity = (productId: number, quantity: number) =>
     dispatch({ type: "UPDATE_QUANTITY", payload: { productId, quantity } });
 
-  const clearCart = () => dispatch({ type: "CLEAR_CART" });
+  const clearCart = () => {
+    localStorage.removeItem("cart");
+    dispatch({ type: "CLEAR_CART" });
+  };
 
   return (
     <CartContext.Provider

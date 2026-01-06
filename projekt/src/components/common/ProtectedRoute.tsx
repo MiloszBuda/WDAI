@@ -1,17 +1,20 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import type { UserRole } from "../../types/User";
 
-interface ProtectedRouteProps {
-  redirectTo?: string;
+interface Props {
+  requiredRole?: UserRole;
 }
 
-export default function ProtectedRoute({
-  redirectTo = "/login",
-}: ProtectedRouteProps) {
-  const { isAuthenticated } = useAuth();
+export default function ProtectedRoute({ requiredRole }: Props) {
+  const { isAuthenticated, user } = useAuth();
 
   if (!isAuthenticated) {
-    return <Navigate to={redirectTo} replace />;
+    return <Navigate to="/login" replace />;
+  }
+
+  if (requiredRole && user?.role !== requiredRole) {
+    return <Navigate to="/" replace />;
   }
 
   return <Outlet />;

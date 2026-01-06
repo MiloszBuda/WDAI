@@ -1,6 +1,14 @@
 import type { Review } from "../types/Review";
 
-let reviews: Review[] = [];
+let reviews: Review[] = (() => {
+  const stored = localStorage.getItem("reviews");
+  if (!stored) return [];
+  try {
+    return JSON.parse(stored) as Review[];
+  } catch {
+    return [];
+  }
+})();
 
 export const reviewsService = {
   async getByProduct(productId: number): Promise<Review[]> {
@@ -15,6 +23,7 @@ export const reviewsService = {
     };
 
     reviews.push(newReview);
+    localStorage.setItem("reviews", JSON.stringify(reviews));
     return newReview;
   },
 };

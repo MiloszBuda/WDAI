@@ -1,7 +1,15 @@
 import type { Order } from "../types/Order";
 import type { CartItem } from "../types/Cart";
 
-let orders: Order[] = [];
+let orders: Order[] = (() => {
+  const stored = localStorage.getItem("orders");
+  if (!stored) return [];
+  try {
+    return JSON.parse(stored) as Order[];
+  } catch {
+    return [];
+  }
+})();
 
 export const ordersService = {
   async createOrder(
@@ -19,6 +27,7 @@ export const ordersService = {
     };
 
     orders.push(newOrder);
+    localStorage.setItem("orders", JSON.stringify(orders));
     return newOrder;
   },
 
