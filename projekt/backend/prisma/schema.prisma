@@ -4,6 +4,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -11,7 +12,7 @@ model User {
   username  String   @unique
   email     String   @unique
   password  String
-  role      Role
+  role      String    @default("user")
   reviews   Review[]
   orders    Order[]
 }
@@ -42,7 +43,3 @@ model Order {
   user      User     @relation(fields: [userId], references: [id])
 }
 
-enum Role {
-  admin
-  user
-}
