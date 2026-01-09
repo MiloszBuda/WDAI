@@ -1,12 +1,13 @@
-import products from "../data/products.json";
-import type { Product } from "../types/Product";
-
 export const productsService = {
-  async getAll(): Promise<Product[]> {
-    return products as Product[];
+  getAll: async () => {
+    const res = await fetch("http://localhost:3000/products");
+    if (!res.ok) throw new Error("Failed to load products");
+    return res.json();
   },
 
-  async getById(id: number): Promise<Product | undefined> {
-    return (products as Product[]).find((product) => product.id === id);
+  getById: async (id: number) => {
+    const res = await fetch(`http://localhost:3000/products/${id}`);
+    if (!res.ok) throw new Error("Product not found");
+    return res.json();
   },
 };

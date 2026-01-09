@@ -8,6 +8,20 @@ export const addReview = async (req: Request, res: Response) => {
   if (rating < 1 || rating > 5)
     return res.status(400).json({ message: "Rating must be between 1 and 5" });
 
+  const purchased = await prisma.orderItem.findFirst({
+    where: {
+      productId,
+      order: {
+        userId,
+      },
+    },
+  });
+
+  if (!purchased)
+    return res
+      .status(403)
+      .json({ message: "You must purchase the product to review it" });
+
   const exists = await prisma.review.findFirst({
     where: {
       userId,
@@ -55,4 +69,14 @@ export const getProductReviews = async (req: Request, res: Response) => {
     count: reviews.length,
     reviews,
   });
+};
+
+export const deleteReview = async (req: Request, res: Response) => {
+  const id = req.params.id;
+
+  await prisma.review.delete({
+    where: { id },
+  });
+
+  res.status(204).send({ message: "Review deleted" });
 };

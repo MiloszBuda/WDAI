@@ -10,8 +10,9 @@ export default function OrderDetailsPage() {
 
   useEffect(() => {
     if (id) {
-      orderService.getDetails(id).then((order) => {
-        setOrder(order);
+      orderService.getMy().then((orders) => {
+        const foundOrder = orders.find((o: Order) => o.id === id);
+        setOrder(foundOrder || null);
         setLoading(false);
       });
     }
@@ -45,6 +46,11 @@ export default function OrderDetailsPage() {
           </li>
         ))}
       </ul>
+      {order.status === "pending" && (
+        <button onClick={() => orderService.cancel(order.id)}>
+          Anuluj zamówienie
+        </button>
+      )}
     </div>
   );
 }

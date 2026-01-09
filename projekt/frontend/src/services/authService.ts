@@ -1,25 +1,12 @@
-import type { LoginCredentials, AuthResponse } from "../types/Auth";
-import users from "../data/users.json";
-import type { AuthUser } from "../types/User";
-
 export const authService = {
-  async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const user = users.find(
-      (u) =>
-        u.username === credentials.username &&
-        u.password === credentials.password
-    );
+  login: async (data: { username: string; password: string }) => {
+    const res = await fetch("http://localhost:3000/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
 
-    if (!user) {
-      throw new Error("Invalid username or password");
-    }
-
-    const { password, ...safeUser } = user;
-
-    return {
-      user: safeUser as AuthUser,
-      token: "mock-jwt-token",
-      refreshToken: "mock-refresh-token",
-    };
+    if (!res.ok) throw new Error("Login failed");
+    return res.json();
   },
 };

@@ -8,10 +8,17 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    orderService.getMy().then((data) => {
-      setOrders(data);
-      setLoading(false);
-    });
+    const load = async () => {
+      try {
+        const data = await orderService.getMy();
+        setOrders(data);
+      } catch {
+        setOrders([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
   }, []);
 
   if (loading) {
