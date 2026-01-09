@@ -8,38 +8,53 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  username  String   @unique
-  email     String   @unique
-  password  String
-  role      String    @default("user")
-  reviews   Review[]
-  orders    Order[]
+  id       String   @id @default(uuid())
+  username String   @unique
+  email    String   @unique
+  password String
+  role     String   @default("user")
+  reviews  Review[]
+  orders   Order[]
 }
 
 model Product {
-  id        Int      @id @default(autoincrement())
-  title     String
-  price     Float
+  id          Int         @id @default(autoincrement())
+  title       String
+  price       Float
   description String
-  image     String
-  reviews   Review[]
+  image       String
+  reviews     Review[]
+  OrderItem   OrderItem[]
 }
 
 model Review {
-  id        String   @id @default(uuid())
+  id        String  @id @default(uuid())
   rating    Int
   comment   String
   userId    String
   productId Int
-  user      User     @relation(fields: [userId], references: [id])
-  product   Product  @relation(fields: [productId], references: [id])
+  user      User    @relation(fields: [userId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
 }
 
 model Order {
   id        String   @id @default(uuid())
   userId    String
   total     Float
-  user      User     @relation(fields: [userId], references: [id])
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+
+  user  User        @relation(fields: [userId], references: [id])
+  items OrderItem[]
 }
 
+model OrderItem {
+  id        String @id @default(uuid())
+  orderId   String
+  productId Int
+  quantity  Int
+  price     Float
+
+  order   Order   @relation(fields: [orderId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+}

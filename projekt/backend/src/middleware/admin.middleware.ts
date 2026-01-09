@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 
-export function aminOnlyMiddleware(
+export function adminOnlyMiddleware(
   req: Request,
   res: Response,
   next: NextFunction

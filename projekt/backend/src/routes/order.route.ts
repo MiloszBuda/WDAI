@@ -1,11 +1,23 @@
 import { Router } from "express";
 import { authMiddleware } from "../middleware/auth.middleware.js";
-import { use } from "react";
+import {
+  createOrder,
+  getMyOrders,
+  updateOrderStatus,
+  cancelOrder,
+} from "../controllers/order.controller.js";
+import { adminOnlyMiddleware } from "../middleware/admin.middleware.js";
 
 const router = Router();
 
-router.get("/", authMiddleware, (req, res) => {
-  res.json({ message: "Orders for user", user: req.user });
-});
+router.post("/", authMiddleware, createOrder);
+router.get("/me", authMiddleware, getMyOrders);
+router.patch(
+  "/:id/status",
+  authMiddleware,
+  adminOnlyMiddleware,
+  updateOrderStatus
+);
+router.post("/:id/cancel", authMiddleware, cancelOrder);
 
 export default router;

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { authMiddleware } from "../middleware/auth.middleware.js";
-import { aminOnlyMiddleware } from "../middleware/admin.middleware.js";
+import { adminOnlyMiddleware } from "../middleware/admin.middleware.js";
 import {
   getProducts,
   getProductById,
@@ -11,6 +11,6 @@ const router = Router();
 
 router.get("/", getProducts);
 router.post("/:id", getProductById);
-router.post("/", authMiddleware, aminOnlyMiddleware, createProduct);
+router.post("/", authMiddleware, adminOnlyMiddleware, createProduct);
 
 export default router;
