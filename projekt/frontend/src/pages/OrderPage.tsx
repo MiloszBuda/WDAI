@@ -1,22 +1,18 @@
 import { useEffect, useState } from "react";
-import { useAuth } from "../context/AuthContext";
-import { ordersService } from "../services/ordersService";
+import { orderService } from "../services/ordersService";
 import type { Order } from "../types/Order";
 import { Link } from "react-router-dom";
 
 export default function OrdersPage() {
-  const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
-
-    ordersService.getOrdersByUser(user.id).then((data) => {
+    orderService.getMy().then((data) => {
       setOrders(data);
       setLoading(false);
     });
-  }, [user]);
+  }, []);
 
   if (loading) {
     return <p>Ładowanie zamówień...</p>;

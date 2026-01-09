@@ -1,0 +1,58 @@
+import type { Request, Response } from "express";
+import { prisma } from "../prisma.js";
+
+export const addReview = async (req: Request, res: Response) => {
+  const userId = (req as any).user.id;
+  const { productId, rating, comment } = req.body;
+
+  if (rating < 1 || rating > 5)
+    return res.status(400).json({ message: "Rating must be between 1 and 5" });
+
+  const exists = await prisma.review.findFirst({
+    where: {
+      userId,
+      productId,
+    },
+  });
+
+  if (exists) {
+    return res
+      .status(400)
+      .json({ message: "You have already reviewed this product" });
+  }
+
+  const review = await prisma.review.create({
+    data: {
+      userId,
+      productId,
+      rating,
+      comment,
+    },
+  });
+
+  res.status(201).json(review);
+};
+
+export const getProductReviews = async (req: Request, res: Response) => {
+  const productId = Number(req.params.id);
+
+  const reviews = await prisma.review.findMany({
+    where: { productId },
+    include: {
+      user: { select: { username: true } },
+    },
+    orderBy: { id: "desc" },
+  });
+
+  const avg =
+    reviews.length === 0
+      ? 0
+      : reviews.reduce((acc, review) => acc + review.rating, 0) /
+        reviews.length;
+
+  res.json({
+    averageRating: Math.round(avg * 10) / 10,
+    count: reviews.length,
+    reviews,
+  });
+};

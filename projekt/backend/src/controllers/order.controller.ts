@@ -103,3 +103,21 @@ export const cancelOrder = async (req: Request, res: Response) => {
 
   res.json(cancelled);
 };
+
+export const getOrderDetails = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const userId = (req as any).user.id;
+
+  const order = await prisma.order.findUnique({
+    where: { id, userId },
+    include: {
+      items: {
+        include: { product: true },
+      },
+    },
+  });
+
+  if (!order) return res.status(404).json({ message: "Order not found." });
+
+  res.json(order);
+};

@@ -1,37 +1,23 @@
 import type { Order } from "../types/Order";
-import type { CartItem } from "../types/Cart";
 
-let orders: Order[] = (() => {
-  const stored = localStorage.getItem("orders");
-  if (!stored) return [];
-  try {
-    return JSON.parse(stored) as Order[];
-  } catch {
-    return [];
-  }
-})();
+export const orderService = {
+  getMy: async (): Promise<Order[]> => {
+    const res = await fetch("http://localhost:3000/orders/my", {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
 
-export const ordersService = {
-  async createOrder(
-    userId: string,
-    items: CartItem[],
-    totalAmount: number
-  ): Promise<Order> {
-    const newOrder: Order = {
-      id: crypto.randomUUID(),
-      userId,
-      date: new Date().toISOString(),
-      items,
-      totalAmount,
-      status: "pending",
-    };
-
-    orders.push(newOrder);
-    localStorage.setItem("orders", JSON.stringify(orders));
-    return newOrder;
+    return res.json();
   },
 
-  async getOrdersByUser(userId: string): Promise<Order[]> {
-    return orders.filter((order) => order.userId === userId);
+  getDetails: async (id: string) => {
+    const res = await fetch(`http://localhost:3000/orders/${id}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+
+    return res.json();
   },
 };

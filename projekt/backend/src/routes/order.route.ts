@@ -5,6 +5,7 @@ import {
   getMyOrders,
   updateOrderStatus,
   cancelOrder,
+  getOrderDetails,
 } from "../controllers/order.controller.js";
 import { adminOnlyMiddleware } from "../middleware/admin.middleware.js";
 
@@ -19,5 +20,6 @@ router.patch(
   updateOrderStatus
 );
 router.post("/:id/cancel", authMiddleware, cancelOrder);
+router.get("/:id", authMiddleware, getOrderDetails);
 
 export default router;

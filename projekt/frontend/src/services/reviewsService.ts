@@ -1,29 +1,21 @@
-import type { Review } from "../types/Review";
-
-let reviews: Review[] = (() => {
-  const stored = localStorage.getItem("reviews");
-  if (!stored) return [];
-  try {
-    return JSON.parse(stored) as Review[];
-  } catch {
-    return [];
-  }
-})();
-
-export const reviewsService = {
-  async getByProduct(productId: number): Promise<Review[]> {
-    return reviews.filter((review) => review.productId === productId);
+export const reviewService = {
+  getByProduct: async (productId: number) => {
+    const res = await fetch(
+      `http://localhost:3000/reviews/product/${productId}`
+    );
+    return res.json();
   },
 
-  async addReview(review: Omit<Review, "id" | "date">): Promise<Review> {
-    const newReview: Review = {
-      ...review,
-      id: crypto.randomUUID(),
-      date: new Date().toISOString(),
-    };
+  add: async (data: { productId: number; rating: number; comment: string }) => {
+    const res = await fetch("http://localhost:3000/reviews", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify(data),
+    });
 
-    reviews.push(newReview);
-    localStorage.setItem("reviews", JSON.stringify(reviews));
-    return newReview;
+    return res.json();
   },
 };

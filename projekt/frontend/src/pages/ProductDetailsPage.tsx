@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { productsService } from "../services/productsService";
 import { useCart } from "../context/CartContext";
 import type { Product } from "../types/Product";
-import { reviewsService } from "../services/reviewsService";
+import { reviewService } from "../services/reviewsService";
 import type { Review } from "../types/Review";
 import { useAuth } from "../context/AuthContext";
 
@@ -31,7 +31,7 @@ export default function ProductDetailsPage() {
   useEffect(() => {
     if (!product) return;
 
-    reviewsService.getByProduct(product.id).then(setReviews);
+    reviewService.getByProduct(product.id).then(setReviews);
   }, [product]);
 
   if (!product) return <p>Ładowanie...</p>;
@@ -39,10 +39,8 @@ export default function ProductDetailsPage() {
   const handleAddReview = async () => {
     if (!user || !product) return;
 
-    const newReview = await reviewsService.addReview({
+    const newReview = await reviewService.add({
       productId: product.id,
-      userId: user.id,
-      userEmail: user.email,
       rating,
       comment,
     });
