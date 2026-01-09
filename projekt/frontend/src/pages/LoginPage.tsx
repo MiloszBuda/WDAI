@@ -12,9 +12,10 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
 
     try {
-      await login({ username, password });
+      await login(username, password);
       navigate("/");
     } catch (err) {
       setError("Nieprawidłowa nazwa użytkownika lub hasło");
@@ -27,15 +28,18 @@ export default function LoginPage() {
 
       <form onSubmit={handleSubmit}>
         <input
+          type="text"
           placeholder="Nazwa użytkownika"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
+          required
         />
         <input
           type="password"
           placeholder="Hasło"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          required
         />
         {error && <p style={{ color: "red" }}>{error}</p>}
 

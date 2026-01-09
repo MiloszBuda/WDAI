@@ -10,6 +10,8 @@ import Navbar from "./components/common/Navbar";
 import OrdersPage from "./pages/OrderPage";
 import OrderDetailsPage from "./pages/OrderDetailsPage";
 import AdminPage from "./pages/AdminPage";
+import AdminOrdersPage from "./pages/AdminOrdersPage";
+import AdminReviewsPage from "./pages/AdminReviewsPage";
 
 export default function App() {
   return (
@@ -26,6 +28,8 @@ export default function App() {
           <Route path="/orders/:id" element={<OrderDetailsPage />} />
           <Route element={<AdminRoute />}>
             <Route path="/admin" element={<AdminPage />} />
+            <Route path="/admin/orders" element={<AdminOrdersPage />} />
+            <Route path="/admin/reviews" element={<AdminReviewsPage />} />
           </Route>
         </Route>
       </Routes>

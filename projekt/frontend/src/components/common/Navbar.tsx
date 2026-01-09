@@ -9,7 +9,7 @@ export default function Navbar() {
   return (
     <nav style={{ display: "flex", padding: "1rem", gap: "1rem" }}>
       <Link to="/">Home</Link>
-      {user?.role === "admin" && <Link to="/admin/orders">Admin</Link>}
+      {user?.role === "admin" && <Link to="/admin/">Admin</Link>}
 
       <div style={{ marginLeft: "auto", display: "flex", gap: "1rem" }}>
         <Link to="/cart">Koszyk ({items.length})</Link>

@@ -80,3 +80,14 @@ export const deleteReview = async (req: Request, res: Response) => {
 
   res.status(204).send({ message: "Review deleted" });
 };
+
+export const getAllReviews = async (req: Request, res: Response) => {
+  const reviews = await prisma.review.findMany({
+    include: {
+      user: { select: { username: true } },
+      product: { select: { title: true } },
+    },
+    orderBy: { id: "desc" },
+  });
+  res.json(reviews);
+};

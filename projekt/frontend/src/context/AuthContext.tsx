@@ -5,56 +5,81 @@ import {
   useEffect,
   type ReactNode,
 } from "react";
-import type { AuthUser } from "../types/User";
-import type { LoginCredentials } from "../types/Auth";
-import { authService } from "../services/authService";
+
+interface User {
+  id: string;
+  username: string;
+  role: "user" | "admin";
+}
 
 interface AuthContextType {
-  user: AuthUser | null;
+  user: User | null;
   isAuthenticated: boolean;
-  login: (credentials: LoginCredentials) => Promise<void>;
+  isAdmin: boolean;
+  login: (username: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(() => {
-    const stored = localStorage.getItem("authUser");
-    return stored ? JSON.parse(stored) : null;
-  });
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("authUser");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setLoading(false);
+      return;
     }
+    fetch("http://localhost:3000/auth/me", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((r) => {
+        if (!r.ok) throw new Error("Failed to fetch user");
+        return r.json();
+      })
+      .then(setUser)
+      .catch(() => {
+        localStorage.removeItem("token");
+        setUser(null);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
-  const login = async (credentials: LoginCredentials) => {
-    const response = await authService.login(credentials);
+  const login = async (username: string, password: string) => {
+    const res = await fetch("http://localhost:3000/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username, password }),
+    });
 
-    setUser(response.user);
-    localStorage.setItem("authUser", JSON.stringify(response.user));
-    localStorage.setItem("authToken", response.token);
+    if (!res.ok) throw new Error("Login failed");
 
-    if (response.refreshToken) {
-      localStorage.setItem("authRefreshToken", response.refreshToken);
-    }
+    const data = await res.json();
+    localStorage.setItem("token", data.token);
+    setUser(data.user);
   };
 
   const logout = () => {
+    localStorage.removeItem("token");
     setUser(null);
-    localStorage.removeItem("authUser");
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("authRefreshToken");
   };
+
+  if (loading) return null;
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        isAuthenticated: Boolean(user),
+        isAuthenticated: !!user,
+        isAdmin: user?.role === "admin",
         login,
         logout,
       }}
