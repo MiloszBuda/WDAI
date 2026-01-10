@@ -16,7 +16,7 @@ export default function CartPage() {
       <ul>
         {items.map((item) => (
           <li key={item.productId}>
-            <strong>{item.title}</strong>
+            <strong>{item.product.title}</strong>
             <p>Cena: {item.price} zł</p>
 
             <input

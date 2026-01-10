@@ -25,20 +25,20 @@ export default function OrderDetailsPage() {
     <div>
       <h1>Zamówienie {order.id}</h1>
       <p>
-        <strong>Data:</strong> {new Date(order.date).toLocaleString()}
+        <strong>Data:</strong> {new Date(order.createdAt).toLocaleString()}
       </p>
       <p>
         <strong>Status:</strong> {order.status}
       </p>
       <p>
-        <strong>Suma:</strong> {order.totalAmount} zł
+        <strong>Suma:</strong> {order.total} zł
       </p>
 
       <h2>Produkty:</h2>
       <ul>
         {order.items.map((item) => (
           <li key={item.productId}>
-            {item.title} - {item.quantity} x {item.price} zł
+            {item.product.title} - {item.quantity} x {item.price} zł
           </li>
         ))}
       </ul>

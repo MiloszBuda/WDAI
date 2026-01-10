@@ -35,18 +35,26 @@ export default function OrdersPage() {
 
       <ul>
         {orders.map((order) => (
-          <li key={order.id} style={{ marginBottom: "1rem" }}>
+          <li
+            key={order.id}
+            style={{
+              marginBottom: "1rem",
+              border: "1px solid #ddd",
+              padding: "10px",
+            }}
+          >
             <p>
               <strong>ID:</strong> {order.id}
             </p>
             <p>
-              <strong>Data:</strong> {new Date(order.date).toLocaleString()}
+              <strong>Data:</strong>{" "}
+              {new Date(order.createdAt).toLocaleString()}
             </p>
             <p>
               <strong>Status:</strong> {order.status}
             </p>
             <p>
-              <strong>Suma:</strong> {order.totalAmount} zł
+              <strong>Suma:</strong> {order.total} zł
             </p>
 
             <Link to={`/orders/${order.id}`}>Szczegóły</Link>

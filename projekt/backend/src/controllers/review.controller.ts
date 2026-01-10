@@ -65,7 +65,7 @@ export const getProductReviews = async (req: Request, res: Response) => {
       include: {
         user: { select: { username: true, id: true } },
       },
-      orderBy: { id: "desc" },
+      orderBy: { createdAt: "desc" },
     });
 
     const avg =
@@ -103,9 +103,9 @@ export const getAllReviews = async (req: Request, res: Response) => {
     const reviews = await prisma.review.findMany({
       include: {
         user: { select: { username: true } },
-        product: { select: { title: true } },
+        product: { select: { title: true, id: true } },
       },
-      orderBy: { id: "desc" },
+      orderBy: { createdAt: "desc" },
     });
     res.json(reviews);
   } catch (error) {

@@ -5,8 +5,8 @@ export type OrderStatus = "pending" | "completed" | "cancelled";
 export interface Order {
   id: string;
   userId: string;
-  date: string;
+  createdAt: string;
   items: CartItem[];
-  totalAmount: number;
+  total: number;
   status: OrderStatus;
 }

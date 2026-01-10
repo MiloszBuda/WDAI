@@ -8,4 +8,8 @@ export interface Review {
   user?: {
     username: string;
   };
+  product?: {
+    id: number;
+    title: string;
+  };
 }

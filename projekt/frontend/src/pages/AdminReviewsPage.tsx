@@ -30,13 +30,24 @@ export default function AdminReviewsPage() {
       <h1>Admin – Opinie</h1>
 
       {reviews.map((r) => (
-        <div key={r.id} style={{ borderBottom: "1px solid #ccc" }}>
-          <p>
-            <strong>{r.user?.username}</strong> ({r.rating}/5)
-          </p>
-          <p>{r.comment}</p>
+        <div
+          key={r.id}
+          style={{ borderBottom: "1px solid #ccc", padding: "10px 0" }}
+        >
+          <div
+            style={{ fontSize: "0.9em", color: "#555", marginBottom: "5px" }}
+          >
+            Produkt: <strong>{r.product?.title}</strong> (ID: {r.productId})
+          </div>
 
-          <button onClick={() => remove(r.id)}>Usuń</button>
+          <p style={{ margin: "5px 0" }}>
+            <strong>{r.user?.username || "Anonim"}</strong> ({r.rating}/5)
+          </p>
+          <p style={{ fontStyle: "italic" }}>{r.comment}</p>
+
+          <button onClick={() => remove(r.id)} style={{ color: "red" }}>
+            Usuń
+          </button>
         </div>
       ))}
     </div>
