@@ -2,49 +2,56 @@ import type { Request, Response } from "express";
 import { prisma } from "../prisma.js";
 
 export const createOrder = async (req: Request, res: Response) => {
-  const userId = (req as any).user?.id;
-  const { items } = req.body;
+  try {
+    const userId = req.user?.id;
+    const { items } = req.body;
 
-  if (!items || items.length === 0)
-    return res.status(400).json({ message: "Empty order." });
+    if (!userId)
+      return res.status(401).json({ message: "User not authenticated." });
 
-  const products = await prisma.product.findMany({
-    where: { id: { in: items.map((item: any) => item.productId) } },
-  });
+    if (!items || items.length === 0)
+      return res.status(400).json({ message: "Empty order." });
 
-  let total = 0;
+    const products = await prisma.product.findMany({
+      where: { id: { in: items.map((item: any) => item.productId) } },
+    });
 
-  const orderItems = items.map((item: any) => {
-    try {
+    let total = 0;
+    const orderItems = [];
+
+    for (const item of items) {
       const product = products.find((p) => p.id === item.productId);
-      if (!product) throw new Error("Product not found.");
+      if (!product) {
+        return res
+          .status(404)
+          .json({ message: `Product ${item.productId} not found. ` });
+      }
       total += product.price * item.quantity;
-      return {
+      orderItems.push({
         productId: item.productId,
         quantity: item.quantity,
         price: product.price,
-      };
-    } catch (err) {
-      return res.status(500).json({ message: "Failed to create order." });
+      });
     }
-  });
 
-  const order = await prisma.order.create({
-    data: {
-      userId,
-      total,
-      items: {
-        create: orderItems,
+    const order = await prisma.order.create({
+      data: {
+        userId,
+        total,
+        items: { create: orderItems },
       },
-    },
-    include: { items: true },
-  });
+      include: { items: true },
+    });
 
-  res.status(201).json(order);
+    res.status(201).json(order);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to create order." });
+  }
 };
 
 export const getMyOrders = async (req: Request, res: Response) => {
-  const userId = (req as any).user.id;
+  const userId = req.user?.id;
 
   const orders = await prisma.order.findMany({
     where: { userId },
@@ -61,7 +68,7 @@ export const getMyOrders = async (req: Request, res: Response) => {
 
 export const cancelOrder = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const userId = (req as any).user.id;
+  const userId = req.user?.id;
 
   const order = await prisma.order.findUnique({ where: { id } });
 
@@ -83,7 +90,7 @@ export const cancelOrder = async (req: Request, res: Response) => {
 
 export const getOrderDetails = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const userId = (req as any).user.id;
+  const userId = req.user?.id;
 
   const order = await prisma.order.findUnique({
     where: { id, userId },

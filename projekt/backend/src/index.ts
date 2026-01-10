@@ -5,7 +5,6 @@ import authRoutes from "./routes/auth.route.js";
 import orderRoutes from "./routes/order.route.js";
 import productRoutes from "./routes/product.route.js";
 import reviewRoutes from "./routes/review.route.js";
-import checkoutRoutes from "./routes/checkout.route.js";
 import adminRoutes from "./routes/admin.route.js";
 
 const app = express();
@@ -17,7 +16,6 @@ app.use("/auth", authRoutes);
 app.use("/orders", orderRoutes);
 app.use("/products", productRoutes);
 app.use("/reviews", reviewRoutes);
-app.use("/checkout", checkoutRoutes);
 app.use("/admin", adminRoutes);
 
 app.listen(3000, () => {

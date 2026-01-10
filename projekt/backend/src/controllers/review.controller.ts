@@ -2,49 +2,58 @@ import type { Request, Response } from "express";
 import { prisma } from "../prisma.js";
 
 export const addReview = async (req: Request, res: Response) => {
-  const userId = (req as any).user.id;
-  const { productId, rating, comment } = req.body;
+  try {
+    const userId = req.user?.id;
+    const { productId, rating, comment } = req.body;
 
-  if (rating < 1 || rating > 5)
-    return res.status(400).json({ message: "Rating must be between 1 and 5" });
+    if (!userId)
+      return res.status(401).json({ message: "User not authenticated." });
 
-  const purchased = await prisma.orderItem.findFirst({
-    where: {
-      productId,
-      order: {
-        userId,
+    if (rating < 1 || rating > 5)
+      return res
+        .status(400)
+        .json({ message: "Rating must be between 1 and 5" });
+
+    const purchased = await prisma.orderItem.findFirst({
+      where: {
+        productId,
+        order: {
+          userId,
+        },
       },
-    },
-  });
+    });
 
-  if (!purchased)
-    return res
-      .status(403)
-      .json({ message: "You must purchase the product to review it" });
+    if (!purchased)
+      return res
+        .status(403)
+        .json({ message: "You must purchase the product to review it" });
 
-  const exists = await prisma.review.findFirst({
-    where: {
-      userId,
-      productId,
-    },
-  });
+    const exists = await prisma.review.findFirst({
+      where: {
+        userId,
+        productId,
+      },
+    });
 
-  if (exists) {
-    return res
-      .status(400)
-      .json({ message: "You have already reviewed this product" });
+    if (exists) {
+      return res
+        .status(400)
+        .json({ message: "You have already reviewed this product" });
+    }
+
+    const review = await prisma.review.create({
+      data: {
+        userId,
+        productId,
+        rating,
+        comment,
+      },
+    });
+
+    res.status(201).json(review);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to add review." });
   }
-
-  const review = await prisma.review.create({
-    data: {
-      userId,
-      productId,
-      rating,
-      comment,
-    },
-  });
-
-  res.status(201).json(review);
 };
 
 export const getProductReviews = async (req: Request, res: Response) => {
