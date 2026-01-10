@@ -1,6 +1,6 @@
 export const orderService = {
   create: async (items: { productId: number; quantity: number }[]) => {
-    const res = await fetch("http://localhost:3000/orders", {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/orders`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -14,7 +14,7 @@ export const orderService = {
   },
 
   getMy: async () => {
-    const res = await fetch("http://localhost:3000/orders/my", {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/orders/my`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
@@ -23,7 +23,7 @@ export const orderService = {
   },
 
   cancel: async (id: string) => {
-    await fetch(`http://localhost:3000/orders/${id}/cancel`, {
+    await fetch(`${import.meta.env.VITE_API_URL}/orders/${id}/cancel`, {
       method: "PATCH",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,

@@ -13,16 +13,20 @@ export const createOrder = async (req: Request, res: Response) => {
   });
 
   let total = 0;
-  const orderItems = items.map((item: any) => {
-    const product = products.find((p) => p.id === item.productId);
-    if (!product) throw new Error("Product not found.");
 
-    total += product.price * item.quantity;
-    return {
-      productId: item.productId,
-      quantity: item.quantity,
-      price: product.price,
-    };
+  const orderItems = items.map((item: any) => {
+    try {
+      const product = products.find((p) => p.id === item.productId);
+      if (!product) throw new Error("Product not found.");
+      total += product.price * item.quantity;
+      return {
+        productId: item.productId,
+        quantity: item.quantity,
+        price: product.price,
+      };
+    } catch (err) {
+      return res.status(500).json({ message: "Failed to create order." });
+    }
   });
 
   const order = await prisma.order.create({

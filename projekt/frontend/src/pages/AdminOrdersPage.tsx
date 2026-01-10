@@ -5,7 +5,7 @@ export default function AdminPage() {
   const [orders, setOrders] = useState<Order[]>([]);
 
   useEffect(() => {
-    fetch("http://localhost:3000/admin/orders", {
+    fetch(`${import.meta.env.VITE_API_URL}/admin/orders`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
@@ -15,7 +15,7 @@ export default function AdminPage() {
   }, []);
 
   const updateStatus = async (id: string, status: string) => {
-    await fetch(`http://localhost:3000/admin/orders/${id}/status`, {
+    await fetch(`${import.meta.env.VITE_API_URL}/admin/orders/${id}/status`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",

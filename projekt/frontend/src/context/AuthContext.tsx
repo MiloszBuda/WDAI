@@ -32,7 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
       return;
     }
-    fetch("http://localhost:3000/auth/me", {
+    fetch(`${import.meta.env.VITE_API_URL}/auth/me`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -52,7 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (username: string, password: string) => {
-    const res = await fetch("http://localhost:3000/auth/login", {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
