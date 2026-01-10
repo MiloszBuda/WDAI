@@ -45,62 +45,70 @@ export async function login(req: Request, res: Response) {
 }
 
 export async function register(req: Request, res: Response) {
-  const { email, username, password } = req.body;
+  try {
+    const { email, username, password } = req.body;
 
-  if (!email || !username || !password) {
-    return res.status(400).json({ message: "Missing fields" });
+    if (!email || !username || !password) {
+      return res.status(400).json({ message: "Missing fields" });
+    }
+
+    const existing = await prisma.user.findFirst({
+      where: {
+        OR: [{ email }, { username }],
+      },
+    });
+
+    if (existing) {
+      return res.status(409).json({ message: "User already exists" });
+    }
+
+    const hashed = await bcrypt.hash(password, 10);
+
+    const user = await prisma.user.create({
+      data: {
+        email,
+        username,
+        password: hashed,
+        role: "user",
+      },
+    });
+
+    const token = jwt.sign(
+      { id: user.id, role: user.role },
+      process.env.JWT_SECRET!,
+      { expiresIn: "1d" }
+    );
+
+    res.status(201).json({
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Registration failed" });
   }
-
-  const existing = await prisma.user.findFirst({
-    where: {
-      OR: [{ email }, { username }],
-    },
-  });
-
-  if (existing) {
-    return res.status(409).json({ message: "User already exists" });
-  }
-
-  const hashed = await bcrypt.hash(password, 10);
-
-  const user = await prisma.user.create({
-    data: {
-      email,
-      username,
-      password: hashed,
-      role: "user",
-    },
-  });
-
-  const token = jwt.sign(
-    { id: user.id, role: user.role },
-    process.env.JWT_SECRET!,
-    { expiresIn: "1d" }
-  );
-
-  res.status(201).json({
-    token,
-    user: {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      role: user.role,
-    },
-  });
 }
 
 export const me = async (req: Request, res: Response) => {
-  const user = await prisma.user.findUnique({
-    where: { id: req.user?.id },
-    select: {
-      id: true,
-      username: true,
-      email: true,
-      role: true,
-    },
-  });
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user?.id },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        role: true,
+      },
+    });
 
-  if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-  res.json(user);
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: "Fetching user failed" });
+  }
 };

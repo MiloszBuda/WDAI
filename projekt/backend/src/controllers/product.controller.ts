@@ -12,13 +12,13 @@ export async function getProducts(req: Request, res: Response) {
 }
 
 export async function getProductById(req: Request, res: Response) {
-  const id = Number(req.params.id);
-
-  if (isNaN(id)) {
-    return res.status(400).json({ message: "Invalid product ID" });
-  }
-
   try {
+    const id = Number(req.params.id);
+
+    if (isNaN(id)) {
+      return res.status(400).json({ message: "Invalid product ID" });
+    }
+
     const product = await prisma.product.findUnique({
       where: { id },
       include: { reviews: true },
@@ -33,17 +33,17 @@ export async function getProductById(req: Request, res: Response) {
 }
 
 export async function createProduct(req: Request, res: Response) {
-  const { title, price, description, image } = req.body;
-  if (!title || !price || !description || !image)
-    return res.status(400).json({ message: "Missing required fields" });
-
   try {
+    const { title, price, description, image } = req.body;
+    if (!title || !price || !description || !image)
+      return res.status(400).json({ message: "Missing required fields" });
+
     const newProduct = await prisma.product.create({
       data: { title, price, description, image },
     });
 
     res.status(201).json(newProduct);
-  } catch {
+  } catch (error) {
     res.status(500).json({ message: "Failed to create product" });
   }
 }

@@ -51,57 +51,69 @@ export const createOrder = async (req: Request, res: Response) => {
 };
 
 export const getMyOrders = async (req: Request, res: Response) => {
-  const userId = req.user?.id;
+  try {
+    const userId = req.user?.id;
 
-  const orders = await prisma.order.findMany({
-    where: { userId },
-    include: {
-      items: {
-        include: { product: true },
+    const orders = await prisma.order.findMany({
+      where: { userId },
+      include: {
+        items: {
+          include: { product: true },
+        },
       },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+      orderBy: { createdAt: "desc" },
+    });
 
-  res.json(orders);
+    res.json(orders);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to retrieve orders." });
+  }
 };
 
 export const cancelOrder = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const userId = req.user?.id;
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id;
 
-  const order = await prisma.order.findUnique({ where: { id } });
+    const order = await prisma.order.findUnique({ where: { id } });
 
-  if (!order) return res.status(404).json({ message: "Order not found." });
+    if (!order) return res.status(404).json({ message: "Order not found." });
 
-  if (order.userId !== userId)
-    return res.status(403).json({ message: "Not your order." });
+    if (order.userId !== userId)
+      return res.status(403).json({ message: "Not your order." });
 
-  if (order.status !== "pending")
-    return res.status(400).json({ message: "Cannot cancel this order." });
+    if (order.status !== "pending")
+      return res.status(400).json({ message: "Cannot cancel this order." });
 
-  const cancelled = await prisma.order.update({
-    where: { id },
-    data: { status: "cancelled" },
-  });
+    const cancelled = await prisma.order.update({
+      where: { id },
+      data: { status: "cancelled" },
+    });
 
-  res.json(cancelled);
+    res.json(cancelled);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to cancel order." });
+  }
 };
 
 export const getOrderDetails = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const userId = req.user?.id;
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id;
 
-  const order = await prisma.order.findUnique({
-    where: { id, userId },
-    include: {
-      items: {
-        include: { product: true },
+    const order = await prisma.order.findUnique({
+      where: { id, userId },
+      include: {
+        items: {
+          include: { product: true },
+        },
       },
-    },
-  });
+    });
 
-  if (!order) return res.status(404).json({ message: "Order not found." });
+    if (!order) return res.status(404).json({ message: "Order not found." });
 
-  res.json(order);
+    res.json(order);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to retrieve order details." });
+  }
 };

@@ -57,46 +57,58 @@ export const addReview = async (req: Request, res: Response) => {
 };
 
 export const getProductReviews = async (req: Request, res: Response) => {
-  const productId = Number(req.params.id);
+  try {
+    const productId = Number(req.params.id);
 
-  const reviews = await prisma.review.findMany({
-    where: { productId },
-    include: {
-      user: { select: { username: true } },
-    },
-    orderBy: { id: "desc" },
-  });
+    const reviews = await prisma.review.findMany({
+      where: { productId },
+      include: {
+        user: { select: { username: true } },
+      },
+      orderBy: { id: "desc" },
+    });
 
-  const avg =
-    reviews.length === 0
-      ? 0
-      : reviews.reduce((acc, review) => acc + review.rating, 0) /
-        reviews.length;
+    const avg =
+      reviews.length === 0
+        ? 0
+        : reviews.reduce((acc, review) => acc + review.rating, 0) /
+          reviews.length;
 
-  res.json({
-    averageRating: Math.round(avg * 10) / 10,
-    count: reviews.length,
-    reviews,
-  });
+    res.json({
+      averageRating: Math.round(avg * 10) / 10,
+      count: reviews.length,
+      reviews,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to retrieve reviews." });
+  }
 };
 
 export const deleteReview = async (req: Request, res: Response) => {
-  const id = req.params.id;
+  try {
+    const id = req.params.id;
 
-  await prisma.review.delete({
-    where: { id },
-  });
+    await prisma.review.delete({
+      where: { id },
+    });
 
-  res.status(204).send({ message: "Review deleted" });
+    res.status(204).send({ message: "Review deleted" });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to delete review." });
+  }
 };
 
 export const getAllReviews = async (req: Request, res: Response) => {
-  const reviews = await prisma.review.findMany({
-    include: {
-      user: { select: { username: true } },
-      product: { select: { title: true } },
-    },
-    orderBy: { id: "desc" },
-  });
-  res.json(reviews);
+  try {
+    const reviews = await prisma.review.findMany({
+      include: {
+        user: { select: { username: true } },
+        product: { select: { title: true } },
+      },
+      orderBy: { id: "desc" },
+    });
+    res.json(reviews);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to retrieve reviews." });
+  }
 };
