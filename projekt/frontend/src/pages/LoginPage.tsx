@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -45,6 +46,9 @@ export default function LoginPage() {
 
         <button type="submit">Zaloguj się</button>
       </form>
+      <p>
+        <Link to="/register">Utwórz konto</Link>
+      </p>
     </div>
   );
 }

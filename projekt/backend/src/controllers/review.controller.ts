@@ -63,7 +63,7 @@ export const getProductReviews = async (req: Request, res: Response) => {
     const reviews = await prisma.review.findMany({
       where: { productId },
       include: {
-        user: { select: { username: true } },
+        user: { select: { username: true, id: true } },
       },
       orderBy: { id: "desc" },
     });
@@ -110,5 +110,52 @@ export const getAllReviews = async (req: Request, res: Response) => {
     res.json(reviews);
   } catch (error) {
     res.status(500).json({ message: "Failed to retrieve reviews." });
+  }
+};
+
+export const editOwnReview = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id;
+    const userId = req.user?.id;
+    const { rating, comment } = req.body;
+
+    if (rating && (rating < 1 || rating > 5)) {
+      return res
+        .status(400)
+        .json({ message: "Rating must be between 1 and 5" });
+    }
+
+    const review = await prisma.review.findUnique({ where: { id } });
+
+    if (!review) return res.status(404).json({ message: "Review not found." });
+    if (review.userId !== userId)
+      return res.status(403).json({ message: "Not your review." });
+
+    const updated = await prisma.review.update({
+      where: { id },
+      data: { rating, comment },
+    });
+
+    res.json(updated);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to edit review." });
+  }
+};
+
+export const deleteOwnReview = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id;
+    const userId = req.user?.id;
+    const review = await prisma.review.findUnique({ where: { id } });
+
+    if (!review) return res.status(404).json({ message: "Review not found." });
+    if (review.userId !== userId)
+      return res.status(403).json({ message: "Not your review." });
+
+    await prisma.review.delete({ where: { id } });
+
+    res.status(204).send({ message: "Review deleted" });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to delete review." });
   }
 };

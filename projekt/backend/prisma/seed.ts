@@ -23,7 +23,8 @@ async function seedProductsFromFakeStore() {
 }
 
 async function main() {
-  const hashed = await bcrypt.hash("admin123", 10);
+  const hashedAdmin = await bcrypt.hash("admin123", 10);
+  const hashedUser = await bcrypt.hash("1234", 10);
 
   await prisma.user.upsert({
     where: { email: "admin@admin.com" },
@@ -31,8 +32,19 @@ async function main() {
     create: {
       email: "admin@admin.com",
       username: "admin",
-      password: hashed,
+      password: hashedAdmin,
       role: "admin",
+    },
+  });
+
+  await prisma.user.upsert({
+    where: { email: "user@user.com" },
+    update: {},
+    create: {
+      email: "user@user.com",
+      username: "user",
+      password: hashedUser,
+      role: "user",
     },
   });
 

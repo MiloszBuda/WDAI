@@ -31,4 +31,28 @@ export const reviewService = {
 
     return res.json();
   },
+
+  edit: async (reviewId: string, data: { rating: number; comment: string }) => {
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL}/reviews/own/${reviewId}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(data),
+      }
+    );
+    return res.json();
+  },
+
+  delete: async (reviewId: string) => {
+    await fetch(`${import.meta.env.VITE_API_URL}/reviews/own/${reviewId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+  },
 };
