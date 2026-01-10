@@ -1,53 +1,42 @@
 import { useEffect, useState } from "react";
-import type { Order, OrderStatus } from "../types/Order";
+import type { Review } from "../types/Review";
 
-export default function AdminPage() {
-  const [orders, setOrders] = useState<Order[]>([]);
+export default function AdminReviewsPage() {
+  const [reviews, setReviews] = useState<Review[]>([]);
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/admin/orders`, {
+    fetch(`${import.meta.env.VITE_API_URL}/reviews`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
     })
       .then((r) => r.json())
-      .then(setOrders);
+      .then(setReviews);
   }, []);
 
-  const updateStatus = async (id: string, status: string) => {
-    await fetch(`${import.meta.env.VITE_API_URL}/admin/orders/${id}/status`, {
-      method: "PATCH",
+  const remove = async (id: string) => {
+    await fetch(`${import.meta.env.VITE_API_URL}/reviews/${id}`, {
+      method: "DELETE",
       headers: {
-        "Content-Type": "application/json",
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
-      body: JSON.stringify({ status }),
     });
 
-    setOrders((orders) =>
-      orders.map((o) =>
-        o.id === id ? { ...o, status: status as OrderStatus } : o
-      )
-    );
+    setReviews((r) => r.filter((x) => x.id !== id));
   };
 
   return (
     <div>
-      <h1>Admin – Zamówienia</h1>
+      <h1>Admin – Opinie</h1>
 
-      {orders.map((o) => (
-        <div key={o.id}>
-          <p>{o.id}</p>
+      {reviews.map((r) => (
+        <div key={r.id} style={{ borderBottom: "1px solid #ccc" }}>
+          <p>
+            <strong>{r.user?.username}</strong> ({r.rating}/5)
+          </p>
+          <p>{r.comment}</p>
 
-          <select
-            value={o.status}
-            onChange={(e) => updateStatus(o.id, e.target.value)}
-          >
-            <option value="pending">pending</option>
-            <option value="paid">paid</option>
-            <option value="shipped">shipped</option>
-            <option value="completed">completed</option>
-          </select>
+          <button onClick={() => remove(r.id)}>Usuń</button>
         </div>
       ))}
     </div>

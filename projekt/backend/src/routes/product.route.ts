@@ -10,7 +10,7 @@ import {
 const router = Router();
 
 router.get("/", getProducts);
-router.post("/:id", getProductById);
+router.get("/:id", getProductById);
 router.post("/", authMiddleware, adminOnlyMiddleware, createProduct);
 
 export default router;

@@ -159,3 +159,34 @@ export const deleteOwnReview = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Failed to delete review." });
   }
 };
+
+export const canReview = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    const productId = Number(req.params.id);
+
+    if (!userId) return res.json({ canReview: false });
+
+    const purchased = await prisma.orderItem.findFirst({
+      where: {
+        productId,
+        order: {
+          userId,
+        },
+      },
+    });
+
+    const exists = await prisma.review.findFirst({
+      where: {
+        userId,
+        productId,
+      },
+    });
+
+    const canReview = Boolean(purchased && !exists);
+
+    res.json({ canReview });
+  } catch (error) {
+    res.status(500).json({ message: "Error checking review status." });
+  }
+};

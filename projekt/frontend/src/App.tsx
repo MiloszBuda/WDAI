@@ -13,6 +13,7 @@ import AdminPage from "./pages/AdminPage";
 import AdminOrdersPage from "./pages/AdminOrdersPage";
 import AdminReviewsPage from "./pages/AdminReviewsPage";
 import RegisterPage from "./pages/RegisterPage";
+import CheckoutPage from "./pages/CheckoutPage";
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
           <Route path="/cart" element={<CartPage />} />
           <Route path="/orders" element={<OrdersPage />} />
           <Route path="/orders/:id" element={<OrderDetailsPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
           <Route element={<AdminRoute />}>
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/admin/orders" element={<AdminOrdersPage />} />

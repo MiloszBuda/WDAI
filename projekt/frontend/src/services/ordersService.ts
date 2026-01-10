@@ -14,7 +14,7 @@ export const orderService = {
   },
 
   getMy: async () => {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/orders/my`, {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/orders/me`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },

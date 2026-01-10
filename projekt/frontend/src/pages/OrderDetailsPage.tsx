@@ -24,10 +24,6 @@ export default function OrderDetailsPage() {
   return (
     <div>
       <h1>Zamówienie {order.id}</h1>
-
-      <p>
-        <strong>Status:</strong> {order.status}
-      </p>
       <p>
         <strong>Data:</strong> {new Date(order.date).toLocaleString()}
       </p>
