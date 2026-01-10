@@ -6,7 +6,7 @@ export const authService = {
       body: JSON.stringify(data),
     });
 
-    if (!res.ok) throw new Error("Login failed");
+    if (!res.ok) throw Error("Login failed");
     return res.json();
   },
 };

@@ -15,16 +15,20 @@ export const checkout = async (req: Request, res: Response) => {
   let total = 0;
 
   const orderItems = items.map((item: any) => {
-    const product = products.find((p) => p.id === item.productId);
-    if (!product) throw new Error(`Product not found`);
+    try {
+      const product = products.find((p) => p.id === item.productId);
+      if (!product) throw new Error(`Product not found`);
 
-    total += product.price * item.quantity;
+      total += product.price * item.quantity;
 
-    return {
-      productId: product.id,
-      quantity: item.quantity,
-      price: product.price,
-    };
+      return {
+        productId: product.id,
+        quantity: item.quantity,
+        price: product.price,
+      };
+    } catch {
+      return res.status(500).json({ message: "Failed to process order." });
+    }
   });
 
   const order = await prisma.order.create({
