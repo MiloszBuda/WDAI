@@ -127,6 +127,16 @@ export default function OrderDetailsPage() {
                 Anulowane
               </Tag>
             )}
+            {order.status === "paid" && (
+              <Tag color="processing" style={{ fontSize: 16, padding: 5 }}>
+                Opłacone
+              </Tag>
+            )}
+            {order.status === "shipped" && (
+              <Tag color="blue" style={{ fontSize: 16, padding: 5 }}>
+                Wysłane
+              </Tag>
+            )}
 
             {order.status === "pending" && (
               <Popconfirm

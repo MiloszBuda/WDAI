@@ -28,6 +28,10 @@ export default function OrdersPage() {
         return <Tag color="error">Anulowane</Tag>;
       case "pending":
         return <Tag color="warning">W trakcie</Tag>;
+      case "paid":
+        return <Tag color="processing">Opłacone</Tag>;
+      case "shipped":
+        return <Tag color="blue">Wysłane</Tag>;
       default:
         return <Tag color="default">{status}</Tag>;
     }
@@ -60,6 +64,8 @@ export default function OrdersPage() {
       render: (status: string) => getStatusTag(status),
       filters: [
         { text: "Zrealizowane", value: "completed" },
+        { text: "Opłacone", value: "paid" },
+        { text: "Wysłane", value: "shipped" },
         { text: "W trakcie", value: "pending" },
         { text: "Anulowane", value: "cancelled" },
       ],
