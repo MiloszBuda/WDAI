@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authMiddleware } from "../middleware/auth.middleware.js";
+import { authToken } from "../middleware/auth.middleware.js";
 import { adminOnlyMiddleware } from "../middleware/admin.middleware.js";
 import {
   addReview,
@@ -13,12 +13,12 @@ import {
 
 const router = Router();
 
-router.post("/", authMiddleware, addReview);
+router.post("/", authToken, addReview);
 router.get("/product/:id", getProductReviews);
-router.delete("/:id", authMiddleware, adminOnlyMiddleware, deleteReview);
-router.get("/", authMiddleware, adminOnlyMiddleware, getAllReviews);
-router.put("/own/:id", authMiddleware, editOwnReview);
-router.delete("/own/:id", authMiddleware, deleteOwnReview);
-router.get("/can-review/:id", authMiddleware, canReview);
+router.delete("/:id", authToken, adminOnlyMiddleware, deleteReview);
+router.get("/", authToken, adminOnlyMiddleware, getAllReviews);
+router.put("/own/:id", authToken, editOwnReview);
+router.delete("/own/:id", authToken, deleteOwnReview);
+router.get("/can-review/:id", authToken, canReview);
 
 export default router;

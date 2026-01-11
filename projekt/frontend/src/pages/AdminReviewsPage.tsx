@@ -3,6 +3,7 @@ import type { Review } from "../types/Review";
 import { Table, Button, Rate, Typography, message, Popconfirm } from "antd";
 import { DeleteOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
+import useAxiosPrivate from "../hooks/useAxiosPrivate";
 
 const { Title, Text } = Typography;
 
@@ -10,35 +11,55 @@ export default function AdminReviewsPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/reviews`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    })
-      .then((r) => r.json())
-      .then((data) => {
-        setReviews(data);
-        setLoading(false);
-      })
-      .catch(() => {
-        message.error("Błąd pobierania opinii");
-        setLoading(false);
-      });
-  }, []);
+  const axiosPrivate = useAxiosPrivate();
 
+  useEffect(() => {
+    let isMounted = true;
+    const controller = new AbortController();
+
+    const fetchReviews = async () => {
+      try {
+        const response = await axiosPrivate.get("/reviews", {
+          signal: controller.signal,
+        });
+
+        if (isMounted) {
+          if (Array.isArray(response.data)) {
+            setReviews(response.data);
+          } else {
+            console.error(
+              "Otrzymano nieprawidłowy format danych:",
+              response.data
+            );
+            setReviews([]);
+          }
+        }
+      } catch (err: any) {
+        if (isMounted && err.name !== "Canceled") {
+          console.error(err);
+          message.error("Błąd pobierania opinii");
+          setReviews([]);
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    fetchReviews();
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
+  }, [axiosPrivate]);
   const remove = async (id: string) => {
     try {
-      await fetch(`${import.meta.env.VITE_API_URL}/reviews/${id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      await axiosPrivate.delete(`/reviews/${id}`);
 
-      setReviews((r) => r.filter((x) => x.id !== id));
+      setReviews((prev) => prev.filter((x) => x.id !== id));
       message.success("Opinia usunięta");
     } catch (err) {
+      console.error(err);
       message.error("Nie udało się usunąć opinii");
     }
   };

@@ -6,26 +6,26 @@ interface JwtPayload {
   role: string;
 }
 
-export function authMiddleware(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
-  const header = req.headers.authorization;
-
-  if (!header) return res.status(401).json({ message: "No token provided" });
-
-  const token = header.split(" ")[1];
-
-  if (!token) return res.status(401).json({ message: "Invalid token format" });
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
-
-    req.user = decoded;
-
-    next();
-  } catch (err) {
-    return res.status(401).json({ message: "Invalid or expired token" });
+declare global {
+  namespace Express {
+    interface Request {
+      user?: JwtPayload;
+    }
   }
+}
+
+export function authToken(req: Request, res: Response, next: NextFunction) {
+  const header = req.headers.authorization;
+  const token = header && header.split(" ")[1];
+
+  if (!token) return res.status(401).json({ message: "No token provided" });
+
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET!, (err, decoded) => {
+    if (err) {
+      return res.status(403).json({ message: "Invalid or expired token" });
+    }
+
+    req.user = decoded as JwtPayload;
+    next();
+  });
 }

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authMiddleware } from "../middleware/auth.middleware.js";
+import { authToken } from "../middleware/auth.middleware.js";
 import {
   createOrder,
   getMyOrders,
@@ -9,9 +9,9 @@ import {
 
 const router = Router();
 
-router.post("/", authMiddleware, createOrder);
-router.get("/me", authMiddleware, getMyOrders);
-router.patch("/:id/cancel", authMiddleware, cancelOrder);
-router.get("/:id", authMiddleware, getOrderDetails);
+router.post("/", authToken, createOrder);
+router.get("/me", authToken, getMyOrders);
+router.patch("/:id/cancel", authToken, cancelOrder);
+router.get("/:id", authToken, getOrderDetails);
 
 export default router;

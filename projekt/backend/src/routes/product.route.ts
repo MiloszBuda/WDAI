@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authMiddleware } from "../middleware/auth.middleware.js";
+import { authToken } from "../middleware/auth.middleware.js";
 import { adminOnlyMiddleware } from "../middleware/admin.middleware.js";
 import {
   getProducts,
@@ -11,6 +11,6 @@ const router = Router();
 
 router.get("/", getProducts);
 router.get("/:id", getProductById);
-router.post("/", authMiddleware, adminOnlyMiddleware, createProduct);
+router.post("/", authToken, adminOnlyMiddleware, createProduct);
 
 export default router;

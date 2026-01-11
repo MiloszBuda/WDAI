@@ -4,6 +4,7 @@ import { productsService } from "../services/productsService";
 import { reviewService } from "../services/reviewsService";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
+import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import type { Product } from "../types/Product";
 import type { Review } from "../types/Review";
 import {
@@ -39,6 +40,7 @@ export default function ProductDetailsPage() {
   const { id } = useParams();
   const { addItem } = useCart();
   const { isAuthenticated, user } = useAuth();
+  const axiosPrivate = useAxiosPrivate();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -58,25 +60,47 @@ export default function ProductDetailsPage() {
 
   useEffect(() => {
     if (!id) return;
+    let isMounted = true;
+    const controller = new AbortController();
 
     setLoading(true);
 
     productsService
       .getById(Number(id))
-      .then(setProduct)
+      .then((data) => {
+        if (isMounted) setProduct(data);
+      })
       .catch(() => message.error("Nie udało się pobrać produktu"));
 
     reviewService
       .getByProduct(Number(id))
       .then((data: any) => {
-        setReviews(data.reviews || []);
+        if (isMounted) setReviews(data.reviews || []);
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
 
     if (isAuthenticated) {
-      reviewService.canReview(Number(id)).then(setCanReview);
+      axiosPrivate
+        .get(`/reviews/can-review/${id}`, {
+          signal: controller.signal,
+        })
+        .then((res) => {
+          if (isMounted) setCanReview(res.data.canReview);
+        })
+        .catch((err) => {
+          if (isMounted && err.name !== "Canceled") setCanReview(false);
+        });
+    } else {
+      setCanReview(false);
     }
-  }, [id, isAuthenticated]);
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
+  }, [id, isAuthenticated, axiosPrivate]);
 
   const handleAddToCart = () => {
     if (!product) return;
@@ -95,19 +119,22 @@ export default function ProductDetailsPage() {
 
     setIsSubmitting(true);
     try {
-      const review = await reviewService.add({
-        productId: product?.id!,
+      const response = await axiosPrivate.post("/reviews", {
+        productId: Number(id),
         rating,
         comment,
       });
 
-      setReviews((r) => [review, ...r]);
+      const newReview = response.data;
+
+      setReviews((r) => [newReview, ...r]);
       setCanReview(false);
       setShowForm(false);
       setComment("");
       setRating(5);
       message.success("Dziękujemy za opinię!");
     } catch (error) {
+      console.error(error);
       message.error("Błąd podczas dodawania opinii");
     } finally {
       setIsSubmitting(false);
@@ -126,17 +153,22 @@ export default function ProductDetailsPage() {
 
   const saveEdit = async (reviewId: string) => {
     try {
-      const updated = await reviewService.edit(reviewId, {
+      await axiosPrivate.put(`/reviews/own/${reviewId}`, {
         rating: editRating,
         comment: editComment,
       });
 
       setReviews((r) =>
-        r.map((rev) => (rev.id === reviewId ? { ...rev, ...updated } : rev))
+        r.map((rev) =>
+          rev.id === reviewId
+            ? { ...rev, rating: editRating, comment: editComment }
+            : rev
+        )
       );
       setEditingId(null);
       message.success("Zaktualizowano opinię");
     } catch (err) {
+      console.error(err);
       message.error("Nie udało się edytować opinii");
     }
   };
@@ -144,10 +176,11 @@ export default function ProductDetailsPage() {
   const handleDeleteReview = async (reviewId: string) => {
     if (!window.confirm("Usunąć opinię?")) return;
     try {
-      await reviewService.delete(reviewId);
+      await axiosPrivate.delete(`/reviews/own/${reviewId}`);
       setReviews((r) => r.filter((rev) => rev.id !== reviewId));
       message.success("Usunięto opinię");
     } catch (err) {
+      console.error(err);
       message.error("Nie udało się usunąć opinii");
     }
   };

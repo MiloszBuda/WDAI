@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authMiddleware } from "../middleware/auth.middleware.js";
+import { authToken } from "../middleware/auth.middleware.js";
 import { adminOnlyMiddleware } from "../middleware/admin.middleware.js";
 import {
   getAllOrders,
@@ -8,10 +8,10 @@ import {
 
 const router = Router();
 
-router.get("/orders", authMiddleware, adminOnlyMiddleware, getAllOrders);
+router.get("/orders", authToken, adminOnlyMiddleware, getAllOrders);
 router.patch(
   "/orders/:id/status",
-  authMiddleware,
+  authToken,
   adminOnlyMiddleware,
   updateOrderStatus
 );
