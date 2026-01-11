@@ -1,49 +1,144 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useNavigate, Link } from "react-router-dom";
+import { Form, Input, Button, Card, Typography, message, Alert } from "antd";
+import {
+  UserOutlined,
+  LockOutlined,
+  MailOutlined,
+  UserAddOutlined,
+} from "@ant-design/icons";
+
+const { Title } = Typography;
 
 export default function RegisterPage() {
-  const { login } = useAuth();
+  const { register } = useAuth();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
-  const [email, setEmail] = useState("");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/register`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, username, password }),
-    });
-
-    if (!res.ok) {
-      alert("Błąd rejestracji");
-      return;
+  const onFinish = async (values: any) => {
+    setLoading(true);
+    setErrorMsg("");
+    try {
+      await register(values.username, values.email, values.password);
+      message.success("Konto utworzone! Możesz się teraz zalogować.");
+      navigate("/login");
+    } catch (err: any) {
+      const msg =
+        err.message ||
+        "Błąd rejestracji. Spróbuj innej nazwy użytkownika lub emaila.";
+      setErrorMsg(msg);
+    } finally {
+      setLoading(false);
     }
-
-    const data = await res.json();
-    localStorage.setItem("token", data.token);
-
-    await login(username, password);
-    navigate("/");
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h1>Rejestracja</h1>
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "70vh",
+      }}
+    >
+      <Card
+        style={{ width: 450, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}
+        bordered={false}
+      >
+        <div style={{ textAlign: "center", marginBottom: 20 }}>
+          <Title level={2}>Utwórz konto</Title>
+        </div>
 
-      <input value={username} onChange={(e) => setUsername(e.target.value)} />
-      <input value={email} onChange={(e) => setEmail(e.target.value)} />
-      <input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
+        {errorMsg && (
+          <Alert
+            message="Błąd rejestracji"
+            description={errorMsg}
+            type="error"
+            showIcon
+            style={{ marginBottom: 20 }}
+          />
+        )}
 
-      <button type="submit">Zarejestruj</button>
-    </form>
+        <Form
+          name="register_form"
+          onFinish={onFinish}
+          layout="vertical"
+          size="large"
+          scrollToFirstError
+        >
+          <Form.Item
+            name="username"
+            label="Nazwa użytkownika"
+            rules={[
+              { required: true, message: "Proszę podać nazwę użytkownika!" },
+            ]}
+          >
+            <Input prefix={<UserOutlined />} placeholder="Twój login" />
+          </Form.Item>
+
+          <Form.Item
+            name="email"
+            label="Adres Email"
+            rules={[
+              { type: "email", message: "Niepoprawny format email!" },
+              { required: true, message: "Proszę podać email!" },
+            ]}
+          >
+            <Input prefix={<MailOutlined />} placeholder="jan@przyklad.pl" />
+          </Form.Item>
+
+          <Form.Item
+            name="password"
+            label="Hasło"
+            rules={[
+              { required: true, message: "Proszę podać hasło!" },
+              { min: 6, message: "Hasło musi mieć min. 6 znaków" },
+            ]}
+          >
+            <Input.Password prefix={<LockOutlined />} placeholder="Hasło" />
+          </Form.Item>
+          <Form.Item
+            name="confirm"
+            label="Potwierdź hasło"
+            dependencies={["password"]}
+            hasFeedback
+            rules={[
+              { required: true, message: "Proszę potwierdzić hasło!" },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  if (!value || getFieldValue("password") === value) {
+                    return Promise.resolve();
+                  }
+                  return Promise.reject(new Error("Hasła nie są identyczne!"));
+                },
+              }),
+            ]}
+          >
+            <Input.Password
+              prefix={<LockOutlined />}
+              placeholder="Potwierdź hasło"
+            />
+          </Form.Item>
+
+          <Form.Item style={{ marginTop: 20 }}>
+            <Button
+              type="primary"
+              htmlType="submit"
+              block
+              loading={loading}
+              icon={<UserAddOutlined />}
+            >
+              Zarejestruj się
+            </Button>
+          </Form.Item>
+
+          <div style={{ textAlign: "center" }}>
+            Masz już konto? <Link to="/login">Zaloguj się tutaj</Link>
+          </div>
+        </Form>
+      </Card>
+    </div>
   );
 }

@@ -9,7 +9,11 @@ export const getAllOrders = async (_req: Request, res: Response) => {
       orderBy: { createdAt: "desc" },
       include: {
         user: { select: { email: true } },
-        items: true,
+        items: {
+          include: {
+            product: true,
+          },
+        },
       },
     });
 

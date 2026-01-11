@@ -1,12 +1,12 @@
 export const orderService = {
-  create: async (items: { productId: number; quantity: number }[]) => {
+  create: async (orderData: any) => {
     const res = await fetch(`${import.meta.env.VITE_API_URL}/orders`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
-      body: JSON.stringify({ items }),
+      body: JSON.stringify(orderData),
     });
 
     if (!res.ok) throw new Error("Order failed");
