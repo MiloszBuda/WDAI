@@ -12,6 +12,7 @@ import {
   Avatar,
 } from "antd";
 import type { ColumnsType } from "antd/es/table";
+import useAxiosPrivate from "../hooks/useAxiosPrivate";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -20,33 +21,48 @@ export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const axiosPrivate = useAxiosPrivate();
+
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/admin/orders`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    })
-      .then((r) => r.json())
-      .then((data) => {
-        setOrders(data);
-        setLoading(false);
-      })
-      .catch(() => {
-        message.error("Błąd pobierania zamówień");
-        setLoading(false);
-      });
-  }, []);
+    let isMounted = true;
+    const controller = new AbortController();
+
+    const fetchOrders = async () => {
+      try {
+        const response = await axiosPrivate.get("/admin/orders", {
+          signal: controller.signal,
+        });
+
+        if (isMounted) {
+          if (Array.isArray(response.data)) {
+            setOrders(response.data);
+          } else {
+            console.error("Nieprawidłowy format danych:", response.data);
+            setOrders([]);
+          }
+        }
+      } catch (error: any) {
+        if (isMounted && error.name !== "Canceled") {
+          console.error("Błąd pobierania zamówień:", error);
+          message.error("Błąd pobierania zamówień");
+          setOrders([]);
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    fetchOrders();
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
+  }, [axiosPrivate]);
 
   const updateStatus = async (id: string, status: string) => {
     try {
-      await fetch(`${import.meta.env.VITE_API_URL}/admin/orders/${id}/status`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({ status }),
-      });
+      await axiosPrivate.patch(`/admin/orders/${id}/status`, { status });
 
       setOrders((prev) =>
         prev.map((o) =>
@@ -55,6 +71,7 @@ export default function AdminOrdersPage() {
       );
       message.success("Status zaktualizowany");
     } catch (err) {
+      console.error(err);
       message.error("Nie udało się zmienić statusu");
     }
   };

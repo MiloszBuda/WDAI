@@ -1,5 +1,5 @@
 import { useCart } from "../context/CartContext";
-import { orderService } from "../services/ordersService";
+import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import {
@@ -29,6 +29,7 @@ const { Title, Text } = Typography;
 export default function CheckoutPage() {
   const { items, clearCart, totalPrice } = useCart();
   const navigate = useNavigate();
+  const axiosPrivate = useAxiosPrivate();
   const [form] = Form.useForm();
 
   const [loading, setLoading] = useState(false);
@@ -50,12 +51,13 @@ export default function CheckoutPage() {
         paymentMethod: values.paymentMethod,
       };
 
-      const order = await orderService.create(orderData);
+      const response = await axiosPrivate.post("/orders", orderData);
 
       message.success("Zamówienie zostało złożone pomyślnie!");
       clearCart();
-      navigate(`/orders/${order.id}`);
+      navigate(`/orders/${response.data.id}`);
     } catch (err) {
+      console.error(err);
       message.error("Błąd podczas składania zamówienia. Spróbuj ponownie.");
     } finally {
       setLoading(false);

@@ -165,27 +165,39 @@ export const canReview = async (req: Request, res: Response) => {
     const userId = req.user?.id;
     const productId = Number(req.params.id);
 
-    if (!userId) return res.json({ canReview: false });
+    if (!userId) {
+      console.log("No userId found in token");
+      return res.json({ canReview: false });
+    }
 
-    const purchased = await prisma.orderItem.findFirst({
+    const orderItem = await prisma.orderItem.findFirst({
       where: {
-        productId,
+        productId: productId,
         order: {
-          userId,
+          userId: userId,
         },
       },
-    });
-
-    const exists = await prisma.review.findFirst({
-      where: {
-        userId,
-        productId,
+      include: {
+        order: true,
       },
     });
 
-    const canReview = Boolean(purchased && !exists);
+    if (!orderItem) {
+      return res.json({ canReview: false });
+    }
 
-    res.json({ canReview });
+    const existingReview = await prisma.review.findFirst({
+      where: {
+        userId: userId,
+        productId: productId,
+      },
+    });
+
+    if (existingReview) {
+      return res.json({ canReview: false });
+    }
+
+    res.json({ canReview: true });
   } catch (error) {
     res.status(500).json({ message: "Error checking review status." });
   }

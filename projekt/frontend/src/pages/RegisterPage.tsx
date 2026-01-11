@@ -21,9 +21,9 @@ export default function RegisterPage() {
     setLoading(true);
     setErrorMsg("");
     try {
-      await register(values.username, values.email, values.password);
+      await register(values.email, values.username, values.password);
       message.success("Konto utworzone! Możesz się teraz zalogować.");
-      navigate("/login");
+      navigate("/");
     } catch (err: any) {
       const msg =
         err.message ||

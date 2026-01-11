@@ -5,71 +5,80 @@ import {
   useEffect,
   type ReactNode,
 } from "react";
+import axios from "../api/axios";
 
 interface User {
   id: string;
   username: string;
+  email: string;
   role: "user" | "admin";
 }
 
 interface AuthContextType {
   user: User | null;
+  accessToken: string | null;
   isAuthenticated: boolean;
   isAdmin: boolean;
   login: (username: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   register: (
     email: string,
     username: string,
     password: string
   ) => Promise<void>;
+  setAuth: React.Dispatch<
+    React.SetStateAction<{ user: User | null; accessToken: string | null }>
+  >;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setLoading(false);
-      return;
-    }
-    fetch(`${import.meta.env.VITE_API_URL}/auth/me`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((r) => {
-        if (!r.ok) throw new Error("Failed to fetch user");
-        return r.json();
-      })
-      .then(setUser)
-      .catch(() => {
-        localStorage.removeItem("token");
-        setUser(null);
-      })
-      .finally(() => {
+    const persistLogin = async () => {
+      try {
+        const response = await axios.get("/auth/refresh", {
+          withCredentials: true,
+        });
+
+        const newAccessToken = response.data.accessToken;
+        setAccessToken(newAccessToken);
+
+        const userResponse = await axios.get("/auth/me", {
+          headers: {
+            Authorization: `Bearer ${newAccessToken}`,
+          },
+        });
+
+        setUser(userResponse.data);
+      } catch (error) {
+        console.log("Nie jesteś zalogowany (brak sesji)");
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    persistLogin();
   }, []);
 
   const login = async (username: string, password: string) => {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ username, password }),
-    });
+    const res = await axios.post(
+      "/auth/login",
+      { username, password },
+      {
+        headers: { "Content-Type": "application/json" },
+        withCredentials: true,
+      }
+    );
 
-    if (!res.ok) throw new Error("Login failed");
+    const { accessToken: newToken, user: userData } = res.data;
 
-    const data = await res.json();
-    localStorage.setItem("token", data.token);
-    setUser(data.user);
+    setAccessToken(newToken);
+    setUser(userData);
   };
 
   const register = async (
@@ -77,23 +86,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     username: string,
     password: string
   ) => {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/register`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, username, password }),
-    });
+    const res = await axios.post(
+      "/auth/register",
+      { email, username, password },
+      {
+        headers: { "Content-Type": "application/json" },
+        withCredentials: true,
+      }
+    );
 
-    if (!res.ok) {
-      throw new Error("Registration failed");
-    }
-    const data = await res.json();
-    localStorage.setItem("token", data.token);
-    setUser(data.user);
+    const { accessToken: newToken, user: userData } = res.data;
+
+    setAccessToken(newToken);
+    setUser(userData);
   };
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    setUser(null);
+  const logout = async () => {
+    try {
+      await axios.post("/auth/logout", {}, { withCredentials: true });
+    } catch (error) {
+      console.error("Błąd podczas wylogowywania", error);
+    } finally {
+      setAccessToken(null);
+      setUser(null);
+    }
+  };
+
+  const setAuth = (data: any) => {
+    if (typeof data === "function") {
+      const current = { user, accessToken };
+      const result = data(current);
+      setUser(result.user);
+      setAccessToken(result.accessToken);
+    } else {
+      setUser(data.user);
+      setAccessToken(data.accessToken);
+    }
   };
 
   if (loading) return null;
@@ -102,11 +130,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         user,
+        accessToken,
         isAuthenticated: !!user,
         isAdmin: user?.role === "admin",
         login,
         logout,
         register,
+        setAuth,
       }}
     >
       {children}

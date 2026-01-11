@@ -1,6 +1,6 @@
 import { useParams, Navigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { orderService } from "../services/ordersService";
+import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import type { Order } from "../types/Order";
 import {
   Descriptions,
@@ -28,13 +28,15 @@ export default function OrderDetailsPage() {
   const { id } = useParams();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
+  const axiosPrivate = useAxiosPrivate();
 
   const fetchOrder = async () => {
+    if (!id) return;
     try {
-      const orders = await orderService.getMy();
-      const found = orders.find((o: Order) => o.id === id);
-      setOrder(found || null);
+      const response = await axiosPrivate.get(`/orders/${id}`);
+      setOrder(response.data);
     } catch (err) {
+      console.error(err);
       message.error("Błąd pobierania zamówienia");
     } finally {
       setLoading(false);
@@ -43,15 +45,16 @@ export default function OrderDetailsPage() {
 
   useEffect(() => {
     fetchOrder();
-  }, [id]);
+  }, [id, axiosPrivate]);
 
   const handleCancel = async () => {
     if (!order) return;
     try {
-      await orderService.cancel(order.id);
+      await axiosPrivate.patch(`/orders/${order.id}/cancel`);
       message.success("Zamówienie zostało anulowane");
       fetchOrder();
     } catch (err) {
+      console.error(err);
       message.error("Nie udało się anulować zamówienia");
     }
   };

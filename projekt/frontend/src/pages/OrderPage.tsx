@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { orderService } from "../services/ordersService";
+import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import type { Order } from "../types/Order";
 import { Link } from "react-router-dom";
 import { Table, Tag, Button, Typography, Tooltip } from "antd";
@@ -11,14 +11,32 @@ const { Title } = Typography;
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const axiosPrivate = useAxiosPrivate();
 
   useEffect(() => {
-    orderService
-      .getMy()
-      .then(setOrders)
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
-  }, []);
+    let isMounted = true;
+    const controller = new AbortController();
+
+    const fetchOrders = async () => {
+      try {
+        const response = await axiosPrivate.get("/orders/me", {
+          signal: controller.signal,
+        });
+        if (isMounted) setOrders(response.data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    fetchOrders();
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
+  }, [axiosPrivate]);
 
   const getStatusTag = (status: string) => {
     switch (status) {
