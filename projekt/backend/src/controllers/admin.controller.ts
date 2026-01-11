@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { prisma } from "../prisma.js";
 import { ORDER_STATUSES } from "../constants/orderStatus.js";
-import { ORDER_TRANSITIONS } from "../constants/orderTransitions.js";
+//import { ORDER_TRANSITIONS } from "../constants/orderTransitions.js";
 
 export const getAllOrders = async (_req: Request, res: Response) => {
   try {
@@ -9,7 +9,11 @@ export const getAllOrders = async (_req: Request, res: Response) => {
       orderBy: { createdAt: "desc" },
       include: {
         user: { select: { email: true } },
-        items: true,
+        items: {
+          include: {
+            product: true,
+          },
+        },
       },
     });
 
@@ -31,11 +35,8 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
 
     if (!order) return res.status(404).json({ message: "Order not found." });
 
-    const allowedNext =
-      ORDER_TRANSITIONS[order.status as keyof typeof ORDER_TRANSITIONS];
-
-    if (!allowedNext.includes(newStatus))
-      return res.status(400).json({ message: "Invalid status transition." });
+    //const allowedNext = ORDER_TRANSITIONS[order.status as keyof typeof ORDER_TRANSITIONS];
+    //if (!allowedNext.includes(newStatus)) return res.status(400).json({ message: "Invalid status transition." });
 
     const updated = await prisma.order.update({
       where: { id },

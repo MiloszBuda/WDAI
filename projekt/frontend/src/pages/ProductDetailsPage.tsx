@@ -6,6 +6,34 @@ import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import type { Product } from "../types/Product";
 import type { Review } from "../types/Review";
+import {
+  Row,
+  Col,
+  Typography,
+  Button,
+  Image,
+  Rate,
+  Divider,
+  List,
+  Avatar,
+  Input,
+  Space,
+  message,
+  Card,
+  Skeleton,
+} from "antd";
+import {
+  ShoppingCartOutlined,
+  UserOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  CheckCircleOutlined,
+  ZoomInOutlined,
+  ZoomOutOutlined,
+} from "@ant-design/icons";
+
+const { Title, Text, Paragraph } = Typography;
+const { TextArea } = Input;
 
 export default function ProductDetailsPage() {
   const { id } = useParams();
@@ -15,45 +43,55 @@ export default function ProductDetailsPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
 
-  // --- STANY WIDOKU ---
-  const [showReviews, setShowReviews] = useState(true); // Czy pokazywać listę?
-  const [showForm, setShowForm] = useState(false); // Czy pokazywać formularz?
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [canReview, setCanReview] = useState(false);
 
-  // Formularz
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Edycja
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editRating, setEditRating] = useState(5);
   const [editComment, setEditComment] = useState("");
 
-  const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     if (!id) return;
+
+    setLoading(true);
 
     productsService
       .getById(Number(id))
       .then(setProduct)
-      .finally(() => {
-        setLoading(false);
-      });
+      .catch(() => message.error("Nie udało się pobrać produktu"));
 
-    reviewService.getByProduct(Number(id)).then((data: any) => {
-      setReviews(data.reviews);
-    });
+    reviewService
+      .getByProduct(Number(id))
+      .then((data: any) => {
+        setReviews(data.reviews || []);
+      })
+      .finally(() => setLoading(false));
 
     if (isAuthenticated) {
       reviewService.canReview(Number(id)).then(setCanReview);
     }
   }, [id, isAuthenticated]);
 
+  const handleAddToCart = () => {
+    if (!product) return;
+    addItem({
+      productId: product.id,
+      title: product.title,
+      price: product.price,
+      image: product.image,
+      quantity: 1,
+    });
+    message.success("Dodano do koszyka");
+  };
+
   const handleAddReview = async () => {
-    if (!comment) return alert("Wpisz treść opinii");
+    if (!comment) return message.warning("Napisz chociaż krótką opinię");
 
     setIsSubmitting(true);
     try {
@@ -63,15 +101,14 @@ export default function ProductDetailsPage() {
         comment,
       });
 
-      setReviews((r) => [...r, review]);
-      setCanReview(false); // Blokujemy możliwość dodania kolejnej
-      setShowForm(false); // Zwijamy formularz (choć i tak zniknie przez canReview)
-
+      setReviews((r) => [review, ...r]);
+      setCanReview(false);
+      setShowForm(false);
       setComment("");
       setRating(5);
-      setShowReviews(true); // Pokazujemy listę, żeby user widział swoją opinię
+      message.success("Dziękujemy za opinię!");
     } catch (error) {
-      alert("Błąd podczas dodawania opinii");
+      message.error("Błąd podczas dodawania opinii");
     } finally {
       setIsSubmitting(false);
     }
@@ -85,8 +122,6 @@ export default function ProductDetailsPage() {
 
   const cancelEditing = () => {
     setEditingId(null);
-    setEditRating(5);
-    setEditComment("");
   };
 
   const saveEdit = async (reviewId: string) => {
@@ -100,244 +135,247 @@ export default function ProductDetailsPage() {
         r.map((rev) => (rev.id === reviewId ? { ...rev, ...updated } : rev))
       );
       setEditingId(null);
+      message.success("Zaktualizowano opinię");
     } catch (err) {
-      alert("Nie udało się edytować opinii");
+      message.error("Nie udało się edytować opinii");
     }
   };
 
   const handleDeleteReview = async (reviewId: string) => {
-    if (!window.confirm("Czy na pewno chcesz usunąć opinię?")) return;
+    if (!window.confirm("Usunąć opinię?")) return;
     try {
       await reviewService.delete(reviewId);
       setReviews((r) => r.filter((rev) => rev.id !== reviewId));
+      message.success("Usunięto opinię");
     } catch (err) {
-      alert("Nie udało się usunąć opinii");
+      message.error("Nie udało się usunąć opinii");
     }
   };
 
-  if (loading) return <p>Ładowanie...</p>;
-  if (!product) return <p>Produkt nie znaleziony</p>;
+  if (loading) return <Skeleton active paragraph={{ rows: 10 }} />;
+  if (!product)
+    return (
+      <div style={{ textAlign: "center", marginTop: 50 }}>
+        <Title level={3}>Produkt nie znaleziony</Title>
+      </div>
+    );
 
-  const avg =
-    reviews.length === 0
-      ? 0
-      : (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1);
+  const avg = reviews.length
+    ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
+    : 0;
 
   return (
     <div>
-      <h1>{product.title}</h1>
-      <img
-        src={product.image}
-        alt={product.title}
-        style={{ maxWidth: "200px" }}
-      />
-      <p>Cena: {product.price} zł</p>
-
-      <button
-        onClick={() =>
-          addItem({
-            productId: product.id,
-            title: product.title,
-            price: product.price,
-            image: product.image,
-            quantity: 1,
-          })
-        }
-      >
-        Dodaj do koszyka
-      </button>
-
-      <hr />
-
-      <div style={{ marginTop: "20px" }}>
-        {/* NAGŁÓWEK I PRZYCISKI STERUJĄCE */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "15px",
-            flexWrap: "wrap",
-            marginBottom: "15px",
-          }}
-        >
-          <h3>
-            Opinie ⭐ {avg} ({reviews.length})
-          </h3>
-
-          {/* Przycisk Pokaż/Ukryj LISTĘ opinii */}
-          <button
-            onClick={() => setShowReviews(!showReviews)}
-            style={{
-              fontSize: "0.8em",
-              padding: "5px 10px",
-              cursor: "pointer",
-            }}
-          >
-            {showReviews ? "Ukryj opinie" : "Pokaż opinie"}
-          </button>
-
-          {/* Przycisk Pokaż/Ukryj FORMULARZ (tylko jeśli canReview) */}
-          {canReview && (
-            <button
-              onClick={() => setShowForm(!showForm)}
-              style={{
-                fontSize: "0.8em",
-                padding: "5px 10px",
-                cursor: "pointer",
-                backgroundColor: showForm ? "#ddd" : "#4CAF50", // Szary jak otwarty, zielony jak zachęta
-                color: showForm ? "black" : "white",
-                border: "none",
-                borderRadius: "4px",
-              }}
-            >
-              {showForm ? "Anuluj dodawanie" : "Napisz opinię"}
-            </button>
-          )}
-        </div>
-
-        {/* 1. FORMULARZ DODAWANIA (Widoczny tylko gdy canReview + showForm) */}
-        {canReview && showForm && (
+      <Row gutter={[48, 32]}>
+        <Col xs={24} md={10}>
           <div
             style={{
-              border: "1px solid #4b4b4b",
-              padding: "15px",
-              marginBottom: "20px",
-              borderRadius: "5px",
-              //backgroundColor: "#f0fff4",
+              border: "1px solid #f0f0f0",
+              padding: "20px",
+              borderRadius: "8px",
+              textAlign: "center",
             }}
           >
-            <h4 style={{ marginTop: 0 }}>Twoja opinia</h4>
-            <div style={{ marginBottom: "10px" }}>
-              <label>Ocena: </label>
-              <select
-                value={rating}
-                onChange={(e) => setRating(+e.target.value)}
-              >
-                {[1, 2, 3, 4, 5].map((n) => (
-                  <option key={n} value={n}>
-                    {n}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <textarea
-              style={{ width: "100%", minHeight: "80px", marginBottom: "10px" }}
-              placeholder="Napisz co myślisz o produkcie..."
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-            />
-
-            <div style={{ display: "flex", gap: "10px" }}>
-              <button onClick={handleAddReview} disabled={isSubmitting}>
-                {isSubmitting ? "Wysyłanie..." : "Wyślij opinię"}
-              </button>
-              <button
-                onClick={() => setShowForm(false)}
-                style={{ background: "transparent", border: "1px solid #ccc" }}
-              >
-                Anuluj
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* 2. LISTA OPINII */}
-        {showReviews && (
-          <div className="reviews-list">
-            {reviews.length === 0 && (
-              <p style={{ color: "#777" }}>Brak opinii.</p>
-            )}
-
-            {reviews.map((r) => (
-              <div
-                key={r.id}
-                style={{ borderBottom: "1px solid #414141", padding: "10px 0" }}
-              >
-                {editingId === r.id ? (
-                  // EDYCJA
-                  <div
-                    className="edit-form"
-                    style={{ padding: "10px", background: "#f9f9f9" }}
-                  >
-                    <label>Edytuj ocenę: </label>
-                    <select
-                      value={editRating}
-                      onChange={(e) => setEditRating(Number(e.target.value))}
-                    >
-                      {[1, 2, 3, 4, 5].map((n) => (
-                        <option key={n} value={n}>
-                          {n}
-                        </option>
-                      ))}
-                    </select>
-                    <textarea
-                      value={editComment}
-                      onChange={(e) => setEditComment(e.target.value)}
-                      style={{
-                        display: "block",
-                        width: "100%",
-                        margin: "10px 0",
-                      }}
+            <Image
+              src={product.image}
+              alt={product.title}
+              style={{ maxHeight: "400px", objectFit: "contain" }}
+              preview={{
+                toolbarRender: (
+                  _,
+                  { transform: { scale }, actions: { onZoomOut, onZoomIn } }
+                ) => (
+                  <Space size={24} className="toolbar-wrapper">
+                    <ZoomOutOutlined
+                      onClick={onZoomOut}
+                      disabled={scale === 1}
+                      style={{ fontSize: 24, color: "#fff", cursor: "pointer" }}
                     />
-                    <button onClick={() => saveEdit(r.id)}>
-                      Zapisz zmiany
-                    </button>
-                    <button
-                      onClick={cancelEditing}
-                      style={{ marginLeft: "10px" }}
-                    >
-                      Anuluj
-                    </button>
-                  </div>
-                ) : (
-                  // WYŚWIETLANIE POJEDYNCZEJ OPINII
-                  <>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <strong>{r.user?.username || "Użytkownik"}</strong>
-                      <span style={{ color: "#f39c12", fontWeight: "bold" }}>
-                        {"★".repeat(r.rating) + "☆".repeat(5 - r.rating)}
-                      </span>
-                    </div>
-                    <p style={{ margin: "5px 0", color: "#ffffff" }}>
-                      {r.comment}
-                    </p>
+                    <ZoomInOutlined
+                      onClick={onZoomIn}
+                      disabled={scale === 50}
+                      style={{ fontSize: 24, color: "#fff", cursor: "pointer" }}
+                    />
+                  </Space>
+                ),
+              }}
+            />
+          </div>
+        </Col>
 
-                    {user && r.userId === user.id && (
-                      <div
-                        style={{
-                          gap: "10px",
-                          display: "flex",
-                          fontSize: "0.85em",
-                          marginTop: "5px",
-                        }}
-                      >
-                        <button onClick={() => startEditing(r)}>Edytuj</button>
-                        <button
-                          onClick={() => handleDeleteReview(r.id)}
-                          style={{
-                            color: "red",
-                            border: "none",
-                            background: "none",
-                            cursor: "pointer",
-                          }}
+        <Col xs={24} md={14}>
+          <Title level={2}>{product.title}</Title>
+
+          <div style={{ marginBottom: 20 }}>
+            <Rate disabled allowHalf value={Number(avg)} />
+            <Text type="secondary" style={{ marginLeft: 10 }}>
+              ({reviews.length} opinii)
+            </Text>
+          </div>
+
+          <Title level={3} style={{ color: "#1677ff", marginTop: 0 }}>
+            {product.price} zł
+          </Title>
+
+          <Paragraph type="secondary" style={{ fontSize: "1.1em" }}>
+            {product.description}
+          </Paragraph>
+
+          <Space size="large" style={{ marginTop: 20 }}>
+            <Button
+              type="primary"
+              size="large"
+              icon={<ShoppingCartOutlined />}
+              onClick={handleAddToCart}
+            >
+              Dodaj do koszyka
+            </Button>
+
+            <Text type="success">
+              <CheckCircleOutlined /> Dostępny
+            </Text>
+          </Space>
+        </Col>
+      </Row>
+
+      <Divider style={{ margin: "40px 0" }} />
+
+      <Row>
+        <Col span={24} style={{ maxWidth: 800 }}>
+          {" "}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 20,
+            }}
+          >
+            <Title level={3} style={{ margin: 0 }}>
+              Opinie klientów
+            </Title>
+
+            {canReview && (
+              <Button onClick={() => setShowForm(!showForm)}>
+                {showForm ? "Anuluj" : "Napisz opinię"}
+              </Button>
+            )}
+          </div>
+          {canReview && showForm && (
+            <Card
+              style={{
+                marginBottom: 30,
+                background: "#f9f9f9",
+                borderColor: "#d9d9d9",
+              }}
+            >
+              <Title level={5} style={{ marginTop: 0 }}>
+                Twoja ocena:
+              </Title>
+              <Rate
+                value={rating}
+                onChange={setRating}
+                style={{ marginBottom: 15 }}
+              />
+              <TextArea
+                rows={4}
+                placeholder="Co myślisz o tym produkcie?"
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                style={{ marginBottom: 15 }}
+              />
+              <Button
+                type="primary"
+                onClick={handleAddReview}
+                loading={isSubmitting}
+              >
+                Opublikuj opinię
+              </Button>
+            </Card>
+          )}
+          <List
+            itemLayout="horizontal"
+            dataSource={reviews}
+            locale={{ emptyText: "Brak opinii." }}
+            renderItem={(item) => (
+              <List.Item
+                actions={
+                  user && item.userId === user.id && editingId !== item.id
+                    ? [
+                        <Button
+                          type="text"
+                          icon={<EditOutlined />}
+                          onClick={() => startEditing(item)}
+                        >
+                          Edytuj
+                        </Button>,
+                        <Button
+                          type="text"
+                          danger
+                          icon={<DeleteOutlined />}
+                          onClick={() => handleDeleteReview(item.id)}
                         >
                           Usuń
-                        </button>
+                        </Button>,
+                      ]
+                    : []
+                }
+              >
+                {editingId === item.id ? (
+                  <div style={{ width: "100%" }}>
+                    <Rate value={editRating} onChange={setEditRating} />
+                    <TextArea
+                      value={editComment}
+                      onChange={(e) => setEditComment(e.target.value)}
+                      style={{ margin: "10px 0" }}
+                    />
+                    <Space>
+                      <Button type="primary" onClick={() => saveEdit(item.id)}>
+                        Zapisz
+                      </Button>
+                      <Button onClick={cancelEditing}>Anuluj</Button>
+                    </Space>
+                  </div>
+                ) : (
+                  <List.Item.Meta
+                    avatar={
+                      <Avatar
+                        icon={<UserOutlined />}
+                        style={{ backgroundColor: "#87d068" }}
+                      />
+                    }
+                    title={
+                      <Space>
+                        <strong>{item.user?.username || "Anonim"}</strong>
+                        <Rate
+                          disabled
+                          defaultValue={item.rating}
+                          style={{ fontSize: 14 }}
+                        />
+                      </Space>
+                    }
+                    description={
+                      <div>
+                        {item.comment}
+                        <div
+                          style={{
+                            fontSize: "0.8em",
+                            color: "#ccc",
+                            marginTop: 5,
+                          }}
+                        >
+                          {item.createdAt &&
+                            new Date(item.createdAt).toLocaleDateString()}
+                        </div>
                       </div>
-                    )}
-                  </>
+                    }
+                  />
                 )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+              </List.Item>
+            )}
+          />
+        </Col>
+      </Row>
     </div>
   );
 }

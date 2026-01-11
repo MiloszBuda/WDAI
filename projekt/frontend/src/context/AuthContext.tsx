@@ -18,6 +18,11 @@ interface AuthContextType {
   isAdmin: boolean;
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
+  register: (
+    email: string,
+    username: string,
+    password: string
+  ) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -67,6 +72,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(data.user);
   };
 
+  const register = async (
+    email: string,
+    username: string,
+    password: string
+  ) => {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, username, password }),
+    });
+
+    if (!res.ok) {
+      throw new Error("Registration failed");
+    }
+    const data = await res.json();
+    localStorage.setItem("token", data.token);
+    setUser(data.user);
+  };
+
   const logout = () => {
     localStorage.removeItem("token");
     setUser(null);
@@ -82,6 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAdmin: user?.role === "admin",
         login,
         logout,
+        register,
       }}
     >
       {children}

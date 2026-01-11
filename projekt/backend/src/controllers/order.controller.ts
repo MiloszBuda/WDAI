@@ -39,6 +39,13 @@ export const createOrder = async (req: Request, res: Response) => {
         userId,
         total,
         items: { create: orderItems },
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        email: req.body.email,
+        address: req.body.address,
+        city: req.body.city,
+        zipCode: req.body.zipCode,
+        paymentMethod: req.body.paymentMethod,
       },
       include: { items: true },
     });

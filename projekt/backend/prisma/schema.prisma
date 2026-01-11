@@ -47,6 +47,14 @@ model Order {
 
   user  User        @relation(fields: [userId], references: [id])
   items OrderItem[]
+
+  firstName String
+  lastName  String
+  email     String
+  address   String
+  city      String
+  zipCode   String
+  paymentMethod String @default("card")
 }
 
 model OrderItem {
