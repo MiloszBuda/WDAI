@@ -62,6 +62,6 @@ npm run dev
 * Opinie: Możliwość dodania opinii o produkcie tylko po jego zakupie. Możliwość edycji i usuwania własnych opinii.
 * Automatyczne wylogowanie po wygaśnięciu sesji, odświeżanie tokenów w tle.
 ### Administrator
-* Dostęp chroniony (wymagana rola admin w bazie danych).
+* Dostęp chroniony (wymagana rola `admin` w bazie danych).
 * Zarządzanie Zamówieniami: Podgląd wszystkich zamówień w systemie, zmiana ich statusów (np. W trakcie -> Wysłane -> Zrealizowane).
 * Moderacja Opinii: Możliwość usunięcia dowolnej opinii w serwisie.
