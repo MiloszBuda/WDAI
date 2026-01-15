@@ -1,7 +1,7 @@
 {
   "info": {
     "_postman_id": "b3f6c8e0-1234-5678-9abc-def012345678",
-    "name": "E-commerce API Project",
+    "name": "Projekt",
     "description": "Kolekcja do testowania sklepu internetowego (Node.js/Express + Prisma).\nAutomatycznie obsługuje Access Token po zalogowaniu.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -68,7 +68,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"username\": \"testuser\",\n    \"password\": \"password123\"\n}",
+              "raw": "{\n    \"username\": \"user\",\n    \"password\": \"1234\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
