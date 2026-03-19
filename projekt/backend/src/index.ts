@@ -12,9 +12,13 @@ const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: [
+      "http://localhost:5173",
+      "https://wdai-hffhju0hz-miloszbudas-projects.vercel.app",
+      "https://wdai-plum.vercel.app",
+    ],
     credentials: true,
-  })
+  }),
 );
 app.use(express.json());
 app.use(cookieParser());
