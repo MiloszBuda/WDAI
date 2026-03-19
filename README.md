@@ -1,6 +1,7 @@
 # Aplikacja sklepu internetowego (Full-Stack)
 
 [Demo](https://wdai-plum.vercel.app/)
+> Ze względu na korzystanie z darmowego planu na Render.com, pierwsze ładowanie produktów może potrwać około 30-50 sekund, kolejne są już szybkie.
 
 ## Funkcjonalności
 * **Autentykacja i Autoryzacja:** Obsługa logowania i rejestracji przy użyciu JWT (Access & Refresh tokens) zapisywanych w bezpiecznych ciasteczkach (httpOnly).
