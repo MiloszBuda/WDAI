@@ -1,6 +1,6 @@
 # Aplikacja sklepu internetowego (Full-Stack)
 
-[Demo](https://wdai-plum.vercel.app/)
+[![Static Badge](https://img.shields.io/badge/DEMO-red?style=for-the-badge)](https://wdai-plum.vercel.app/)
 > Ze względu na korzystanie z darmowego planu na Render.com, pierwsze ładowanie produktów może potrwać około 30-50 sekund, kolejne są już szybkie.
 
 ## Funkcjonalności
@@ -72,4 +72,5 @@ npm install
 # 2. Uruchomienie serwera (domyślnie port 5173)
 npm run dev
 ```
+
 
