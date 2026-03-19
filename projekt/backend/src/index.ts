@@ -15,6 +15,8 @@ app.use(
     origin: [
       "http://localhost:5173",
       "https://wdai-hffhju0hz-miloszbudas-projects.vercel.app",
+      "https://wdai-p7zrgiowd-miloszbudas-projects.vercel.app",
+      "https://wdai-git-main-miloszbudas-projects.vercel.app",
       "https://wdai-plum.vercel.app",
     ],
     credentials: true,
