@@ -9,13 +9,13 @@ const generateToken = (userId: string, role: string) => {
     process.env.ACCESS_TOKEN_SECRET!,
     {
       expiresIn: "15m",
-    }
+    },
   );
 
   const refreshToken = jwt.sign(
     { id: userId },
     process.env.REFRESH_TOKEN_SECRET!,
-    { expiresIn: "7d" }
+    { expiresIn: "7d" },
   );
   return { accessToken, refreshToken };
 };
@@ -126,7 +126,7 @@ export async function refresh(req: Request, res: Response) {
   try {
     const decoded = jwt.verify(
       refreshToken,
-      process.env.REFRESH_TOKEN_SECRET!
+      process.env.REFRESH_TOKEN_SECRET!,
     ) as { id: string };
 
     const user = await prisma.user.findUnique({
@@ -140,7 +140,7 @@ export async function refresh(req: Request, res: Response) {
     const accessToken = jwt.sign(
       { id: user.id, role: user.role },
       process.env.ACCESS_TOKEN_SECRET!,
-      { expiresIn: "15m" }
+      { expiresIn: "15m" },
     );
 
     res.json({ accessToken });
