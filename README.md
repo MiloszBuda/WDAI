@@ -1,24 +1,45 @@
-# Projekt WDAI
+# Aplikacja sklepu internetowego (Full-Stack)
 
-## Autor: Miłosz Buda
+[Demo](https://wdai-plum.vercel.app/)
+
+## Funkcjonalności
+* **Autentykacja i Autoryzacja:** Obsługa logowania i rejestracji przy użyciu JWT (Access & Refresh tokens) zapisywanych w bezpiecznych ciasteczkach (httpOnly).
+* **System ról (RBAC):** Podział na zwykłych użytkowników i Administratorów z różnymi poziomami dostępu (chronione ścieżki na frontendzie i backendzie).
+* **Koszyk i Zamówienia:** Zarządzanie globalnym stanem koszyka (Context API) oraz pełen cykl życia zamówienia (zmiana statusów przez Admina).
+* **System opinii:** Użytkownicy mogą zostawiać recenzje i oceny produktów.
+* **Responsywność:** Interfejs dopasowany do urządzeń mobilnych i desktopowych.
 
 ## Technologie
-### Frontend
-* **Framework:** React 18 (Vite)
-* **Język:** TypeScript
-* **UI Library:** Ant Design (antd)
-* **Komunikacja z API:** Axios
-* **Routing:** React Router DOM
-### Backend
-* **Runtime:** Node.js
-* **Framework:** Express.js
-* **Baza danych:** SQLite (plik `dev.db`)
-* **ORM:** Prisma
-* **Autoryzacja:** JWT (Access Token + Refresh Token)
+**Frontend**
+* React 19 + Vite
+* TypeScript
+* React Router v6
+* Ant Design (UI Components) + CSS
+* Axios (z interceptorami do odświeżania tokenów)
+  
+**Backend**
+* Node.js + Express
+* TypeScript
+* Prisma ORM
+* PostgreSQL (w chmurze Neon.tech)
+* JWT & Bcrypt (bezpieczeństwo)
 
-## Setup
+## Konta testowe
+
+Możliwość przetestowania, używając poniższych danych:
+
+**Konto Administratora:**
+* **Username:** `admin`
+* **Hasło:** `admin123`
+
+**Konto Użytkownika:**
+* **Username:** `user`
+* **Hasło:** `1234`
+
+## Uruchomienie lokalne
 Projekt składa się z dwóch części, naleźy je uruchomić w osobnych terminalach
-### backend
+
+**backend**
 ```bash
 cd backend
 
@@ -40,7 +61,7 @@ npx prisma db seed
 # 5. Uruchomienie serwera (domyślnie port 3000)
 npm run dev
 ```
-### frontend
+**frontend**
 ```bash
 cd frontend
 
@@ -51,17 +72,3 @@ npm install
 npm run dev
 ```
 
-## Funkcjonalności
-### Każdy użytkownik
-* Przeglądanie listy produktów z możliwością wyszukiwania.
-* Szczegóły produktu wraz ze zdjęciem, opisem i średnią oceną.
-* Rejestracja i logowanie użytkowników.
-### Użytkownik zalogowany
-* Koszyk: Dodawanie/usuwanie produktów, zmiana ilości, przeliczanie sumy.
-* Zamówienia: Składanie zamówienia (Checkout), podgląd historii własnych zamówień i ich statusów.
-* Opinie: Możliwość dodania opinii o produkcie tylko po jego zakupie. Możliwość edycji i usuwania własnych opinii.
-* Automatyczne wylogowanie po wygaśnięciu sesji, odświeżanie tokenów w tle.
-### Administrator
-* Dostęp chroniony (wymagana rola `admin` w bazie danych).
-* Zarządzanie Zamówieniami: Podgląd wszystkich zamówień w systemie, zmiana ich statusów (np. W trakcie -> Wysłane -> Zrealizowane).
-* Moderacja Opinii: Możliwość usunięcia dowolnej opinii w serwisie.
